@@ -39,8 +39,9 @@ for e=1:Nele
                     Djk = (0.25*mubar/area)*(dy(k)*dy(j) + dx(k)*dx(j));
                     Cjk = (1/6)*(betabar(1)*dy(k) + betabar(2)*dx(j));
                     Rjk = (1/12)*sigmabar*area*(1 + (j==k));
+                    
+                    B(jj,kk) = B(jj,kk) + (1/12)*rhobar*area*(1 + (j==k));
                     A(jj,kk) = A(jj,kk) + Djk + Cjk + Rjk;
-                    B(jj,kk) = B(jj,kk) + (1/12)*rhobar*area*(1 + (j==k));  
                 elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
                     Djk = (0.25*mubar/area)*(dy(k)*dy(j) + dx(k)*dx(j));
                     Cjk = (1/6)*(betabar(1)*dy(k) + betabar(2)*dx(j));
