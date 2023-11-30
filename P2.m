@@ -80,33 +80,34 @@ for l=1:geom.nelements.nBorders
             	  D(2) = geom.pivot.nodelist(n(1));
                 end
                 %
-            	if( sum(VertexValue) ~= 2 )
-              	  Di = VertexValue*D';
-            	  % nodo con condizione di Dirichlet
-                  geom.pivot.nodelist(nnode)= Di;
-                  geom.pivot.Di(end+1,:) = [nnode, Di];
-                  geom.pivot.pivot(nnode) = min(geom.pivot.pivot)-1;
-            	else
+                if( sum(VertexValue) ~= 2 )
+                	  Di = VertexValue*D';
+                	  % nodo con condizione di Dirichlet
+                      geom.pivot.nodelist(nnode)= Di;
+                      geom.pivot.Di(end+1,:) = [nnode, Di];
+                      geom.pivot.pivot(nnode) = min(geom.pivot.pivot)-1;
+                else
                     % diamo al nuovo nodo il marker del lato
                     % il lato che stiamo analizzando e` un lato del poligono
                     % iniziale:
 
-              	  % l'indice del lato e` quello del nodo di inizio di quel lato
-            	  if(max(Vertex)-min(Vertex)>1) % siamo sul lato di chiusura
-              	    Di = geom.input.BC.Boundary.Values(max(Vertex));
-            	  else % siamo sui lati 1->2->3->4->
-              	    Di = geom.input.BC.Boundary.Values(min(Vertex));
-            	  end
-                  % check della condizione di Neumann aperta
-                  if( rem(Di,2)== 0 ) % nodo con grado di liberta`, lato di
-                      % Dirichlet aperto
-              	    geom.pivot.nodelist(nnode)= 0;
-            	    geom.pivot.pivot(nnode) = max(geom.pivot.pivot)+1;
-                  else
-                      geom.pivot.nodelist(nnode)= Di;
-                      geom.pivot.Di(end+1,:) = [nnode, Di];
-                      geom.pivot.pivot(nnode) = min(geom.pivot.pivot)-1;
-                  end
+                	  % l'indice del lato e` quello del nodo di inizio di quel lato
+                	  if(max(Vertex)-min(Vertex)>1) % siamo sul lato di chiusura
+                    	    Di = geom.input.BC.Boundary.Values(max(Vertex));
+                	  else % siamo sui lati 1->2->3->4->
+                    	    Di = geom.input.BC.Boundary.Values(min(Vertex));
+                	  end
+                      % check della condizione di Neumann aperta
+                      if( rem(Di,2)== 0 ) % nodo con grado di liberta`, lato di
+                          % Dirichlet aperto
+                    	    geom.pivot.nodelist(nnode)= 0;
+                    	    geom.pivot.pivot(nnode) = max(geom.pivot.pivot)+1;
+                            disp('Non dovevi essere qui!!')
+                      else
+                          geom.pivot.nodelist(nnode)= Di;
+                          geom.pivot.Di(end+1,:) = [nnode, Di];
+                          geom.pivot.pivot(nnode) = min(geom.pivot.pivot)-1;
+                      end
                 end % if( sum(VertexValue) ~= 2 )
                 %----------------------------------
         	else % if( geom.pivot.nodelist(n(1)) ~= geom.pivot.nodelist(n(2)) )
