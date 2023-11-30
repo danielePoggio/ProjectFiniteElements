@@ -1,0 +1,3 @@
+C:/Users/39334/Desktop/Poli/Metodi Numerici PDE/LAIB/ProjectFiniteElements/cmake-build-debug/CMakeFiles/ProjectFiniteElements.dir
+C:/Users/39334/Desktop/Poli/Metodi Numerici PDE/LAIB/ProjectFiniteElements/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/39334/Desktop/Poli/Metodi Numerici PDE/LAIB/ProjectFiniteElements/cmake-build-debug/CMakeFiles/rebuild_cache.dir
