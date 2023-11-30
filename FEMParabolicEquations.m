@@ -82,22 +82,11 @@ for e=1:nedgeBorders
     if ii > 0
         bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
     end
-%     for i=1:2 
-%         j = pivot(edgeBorders(e,i,:,:));
-%         if j>0
-%             if i == 1 
-%                 bNeumann(j) = bNeumann(j) + edgeLen*(gNe(xb(1),xb(2))/3 + gNe(xe(1),xe(2))/6);
-%             end
-%             if i == 2
-%                 bNeumann(j) = bNeumann(j)+ edgeLen*(gNe(xb(1),xb(2))/6 + gNe(xe(1),xe(2))/3);
-%             end
-%         end
-%     end
 end
-b = b + bNeumann;
+F = b + bNeumann + Ad*ud;
 
 % Risolviamo Sistema Lineare
-x = A\(b-Ad*ud);
+
 % Produciamo soluzione per output
 uh = zeros(Np,1);
 for j=1:Np

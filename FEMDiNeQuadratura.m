@@ -48,16 +48,16 @@ for e=1:Nele
                 for k=1:3
                     kk = pivot(ele(e,k));
                     if kk > 0 % assemblaggio classico di A
-                        phik = phi_matrix(:, k);
-                        phij = phi_matrix(:, j);
-                        dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
-                        dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
+                        phik = phi_matrix(q, k);
+                        phij = phi_matrix(q, j);
+                        dphik = [dphix_matrix(q,k), dphiy_matrix(q,k)];
+                        dphij = [dphix_matrix(q,j), dphiy_matrix(q,j)];
                         Djk = 0;
                         Cjk = 0;
                         Rjk = 0;
-                        Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik(q,:)*invB*invB'*dphij(q,:)';
-                        Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik(q,:)'*phij(q);
-                        Rjk = Rjk + 2*area_e*omega(q)*sigma(coordFe(1), coordFe(2))*phik(q)*phij(q);
+                        Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik*invB*invB'*dphij';
+                        Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik'*phij;
+                        Rjk = Rjk + 2*area_e*omega(q)*sigma(coordFe(1), coordFe(2))*phik*phij;
                         A(jj,kk) = A(jj,kk) + Djk + Cjk + Rjk;
                     elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
                         phik = phi_matrix(:, k);
