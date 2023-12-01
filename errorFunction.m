@@ -6,7 +6,7 @@ ele = geom.elements.triangles;
 Ne = length(geom.elements.triangles(1,:)); % numero di per ciascun elemento
 
 % definiamo i nodi di quadratura e i pesi associati
-run("ProjectFiniteElement\funzioni\nodes_weights.m")
+run("nodes_weights.m")
 clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 

@@ -7,22 +7,19 @@ area = 0.02;
 geom = Triangolator(area);
 close all
 
-% %% Assemblaggio FEM + risoluzione sistema lineare
-% mu = @(x,y) 1.0;
-% beta = @(x,y) [0.0, 0.0];
-% sigma = @(x,y) 0.0;
-% f = @(x,y) 32*(x*(1-x) + y*(1-y));
-% gNe = @(x,y) -16*x*(1-x);
-% gDi = @(x,y) 0;
-
-%% Altro problema
+%% Problema differenziale
+u = @(x,y) 16*x*(1-x)*y*(1-y);
+gradu = @(x,y) 16*[y*(1-y)*(1 -2*x), x*(1-x)*(1 - 2*y)]';
 mu = @(x,y) 1.0;
 beta = @(x,y) [1.0, 0.0];
-sigma = @(x,y) 1.0;
-f = @(x,y) 8*y*(1-y)*(2-3*x-x^2) + 8*x*(1-x)*(4+y-y^2);
+sigma = @(x,y) 0.0;
+f = @(x,y) 32*(x*(1-x) + y*(1-y)) + 16*(1-2*x)*(y*(1-y));
 gNe = @(x,y) -16*x*(1-x);
 gDi = @(x,y) 0;
+
+%% Soluzione problema discretizzato
 uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe);
+
 %% Plot soluzione approssimata
 XY = geom.elements.coordinates;
 x = XY(:,1);
@@ -33,23 +30,13 @@ trisurf(tri, x, y, uh);
 title("Grafico funzione approssimata")
 
 %% calcoliamo stima dell'errore
-u = @(x,y) 16*x*(1-x)*y*(1-y);
-gradu = @(x,y) 16*[y*(1-y)*(1 -2*x), x*(1-x)*(1 - 2*y)]';
 [errorL2, errorH1] = errorFunction(geom, u, gradu, uh);
-% [errorL2quad, errorH1quad] = errorFunction(geom, u, gradu, uh_quad);
+
 %% Andiamo a vedere come estrarre il valore minimo e massimo dell'area nella triangolazione
 Area = [geom.support.TInfo.Area].';
 areaMax = max(Area);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
-mu = @(x,y) 1.0;
-beta = @(x,y) [0.0, 0.0];
-sigma = @(x,y) 0.0;
-f = @(x,y) 32*(x*(1-x) + y*(1-y));
-gNe = @(x,y) -16*x*(1-x);
-gDi = @(x,y) 0;
-u = @(x,y) 16*x*(1-x)*y*(1-y);
-gradu = @(x,y) 16*[y*(1-y)*(1 -2*x), x*(1-x)*(1 - 2*y)]';
 Ktest = 4;
 areaTri = zeros(Ktest,1);
 areaTri(1) = 0.01;
