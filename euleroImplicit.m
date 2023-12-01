@@ -1,11 +1,8 @@
-function u = euleroImplicit(geom, rho, mu, beta, sigma, f, gDi, gNe, u0, dt,Nt,Nv)
+function u = euleroImplicit(geom, rho, mu, beta, sigma, f, gDi, gNe, ut0, dt,Nt)
 %euleroImplicit Time Discretization for Parabolic Equation
 % Nt: number of time steps
 % Nv: number of vertex of space discretization
 
-u = zeros(Nv,Nt); % soluzione finale -> row: time; col:space
-
-% Assemblaggio matrici A, Ad e B
 pivot = geom.pivot.pivot;
 ele = geom.elements.triangles;
 XY = geom.elements.coordinates;
@@ -13,6 +10,17 @@ Np = length(XY);
 Ndof = max(pivot);
 NDi = -min(pivot);
 Nele = length(ele);
+
+u = zeros(Np,Nt); % soluzione finale -> row: time; col:space
+u0 = zeros(Ndof,1); % dove metteremo la condizione iniziale
+for j=1:Np
+    jj = pivot(j);
+    if jj > 0
+        u0(jj) = ut0(XY(j,1), XY(j,2));
+    end
+end
+
+% Assemblaggio matrici A, Ad e B
 A = zeros(Ndof,Ndof);
 B = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
@@ -25,7 +33,6 @@ for e=1:Nele
     betabar = beta(pbar(1),pbar(2));
     sigmabar = sigma(pbar(1),pbar(2));
     rhobar = rho(pbar(1),pbar(2));
-    
     area = geom.support.TInfo(e).Area;
     dx1 = p3(1) - p2(1);
     dx2 = p1(1) - p3(1);
@@ -59,16 +66,15 @@ end
 
 
 for tstep=1:Nt
-    F = zeros(Ndof,1);
     if tstep == 1
         utemp = u0;
     else
-        utemp = u(:, tstep-1);
+        utemp = x;
     end
     t = tstep*dt;
     % andiamo innanzitutto a calcolare il termine noto F
     fn = zeros(Ndof,1);
-    for ele=1:Nele
+    for e=1:Nele
         fbar = f(t+dt, pbar(1),pbar(2));
         for j=1:3
             jj = pivot(ele(e,j));
@@ -90,7 +96,7 @@ end
 Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
-bNeumann = zeros(length(b), 1);
+bNeumann = zeros(Ndof, 1);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);

@@ -1,11 +1,8 @@
-function [outputArg1,outputArg2] = euleroImplicit(geom, rho, mu, beta, sigma, f, gDi, gNe, u0, dt,Nt,Nv)
+function u = euleroImplicit(geom, rho, mu, beta, sigma, f, gDi, gNe, ut0, dt,Nt)
 %euleroImplicit Time Discretization for Parabolic Equation
 % Nt: number of time steps
 % Nv: number of vertex of space discretization
 
-u = zeros(Nv,Nt); % soluzione finale -> row: time; col:space
-
-% Assemblaggio matrici A, Ad e B
 pivot = geom.pivot.pivot;
 ele = geom.elements.triangles;
 XY = geom.elements.coordinates;
@@ -13,10 +10,20 @@ Np = length(XY);
 Ndof = max(pivot);
 NDi = -min(pivot);
 Nele = length(ele);
+
+u = zeros(Np,Nt); % soluzione finale -> row: time; col:space
+u0 = zeros(Ndof,1); % dove metteremo la condizione iniziale
+for j=1:Np
+    jj = pivot(j);
+    if jj > 0
+        u0(j) = u
+    end
+end
+
+% Assemblaggio matrici A, Ad e B
 A = zeros(Ndof,Ndof);
 B = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
-F = zeros(Ndof,1);
 for e=1:Nele
     p1 = XY(ele(e,1),:);
     p2 = XY(ele(e,2),:);
@@ -26,7 +33,6 @@ for e=1:Nele
     betabar = beta(pbar(1),pbar(2));
     sigmabar = sigma(pbar(1),pbar(2));
     rhobar = rho(pbar(1),pbar(2));
-    
     area = geom.support.TInfo(e).Area;
     dx1 = p3(1) - p2(1);
     dx2 = p1(1) - p3(1);
@@ -67,12 +73,13 @@ for tstep=1:Nt
     end
     t = tstep*dt;
     % andiamo innanzitutto a calcolare il termine noto F
-    for ele=1:Nele
-        fbar = f(t, pbar(1),pbar(2));
+    fn = zeros(Ndof,1);
+    for e=1:Nele
+        fbar = f(t+dt, pbar(1),pbar(2));
         for j=1:3
             jj = pivot(ele(e,j));
             if jj > 0
-                F(jj) = F(jj) + fbar;
+                fn(jj) = fn(jj) + fbar;
             end
         end
     end
@@ -89,7 +96,7 @@ end
 Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
-bNeumann = zeros(length(b), 1);
+bNeumann = zeros(Ndof, 1);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);
@@ -106,9 +113,20 @@ for e=1:nedgeBorders
         bNeumann(ii) = bNeumann(ii) + (gNe(t, Vb(1),Vb(2))/6 + gNe(t, Ve(1),Ve(2))/3)*edgeLen;
     end
 end
-F = F + bNeumann + Ad*ud; % Termine noto da utilizzare
+F = fn + bNeumann + Ad*ud; % Termine noto da utilizzare
 % Usiamo ora Eulero implicito
-x = ()
+x = (B+dt*A)\(B*utemp+dt*F);
+% Produciamo soluzione per output
+uh = zeros(Np,1);
+for j=1:Np
+    jj = pivot(j);
+    if jj > 0
+        uh(j) = x(jj)*(jj>0) + 0;
+    elseif jj < 0
+        uh(j) = gDi(XY(j,1), XY(j,2));
+    end
+end
+u(:,tstep) = uh';
 end
 
 end
