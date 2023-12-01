@@ -1,19 +1,10 @@
-clear all
-close all
-clc
-% ciao dfhfgd
-%% Eseguo Triangolazione sul Dominio
-area = 0.02;
-geom = Triangolator(area);
-close all
-run("P2.m")
-clear n l InputVertexvalue InputVertexValue nnode Vertex VertexValue
 %% Scriviamo le funzioni base di P2
-dim = 6;
+Nv = 6;
 N1 = @(x,y) x;
 N2 = @(x,y) y;
 N3 = @(x,y) 1 - x - y;
 N = @(x,y) [N1(x,y), N2(x,y), N3(x,y)];
+
 phi1 = @(x,y) 2*N1(x,y)*(N1(x,y) - 0.5);
 phi2 = @(x,y) 2*N2(x,y)*(N2(x,y) - 0.5);
 phi3 = @(x,y) 2*N3(x,y)*(N3(x,y) - 0.5);
@@ -21,6 +12,9 @@ phi4 = @(x,y) 4*N3(x,y)*N1(x,y);
 phi5 = @(x,y) 4*N1(x,y)*N2(x,y);
 phi6 = @(x,y) 4*N2(x,y)*N3(x,y);
 phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)];
+
+Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y; 
+    0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
 
 
 
