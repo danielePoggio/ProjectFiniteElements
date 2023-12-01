@@ -48,18 +48,20 @@ for e=1:Nele
                     Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Rjk;
                 end
             end
-            b(jj) = b(jj) + fbar*area/3;
+            % b(jj) = b(jj) + fbar*area/3;
+            % f potrebbe essere anche funzione del tempo, quindi calcolarla
+            % dopo 
         end
     end
 end
 % creaimo una matrice che sulle righe abbia le coordinate dei punto con
-% condizioni di Dirichlet:
-indexDi = geom.pivot.Di;
-pointDi = XY(indexDi(:,1),:);
-ud = zeros(NDi,1);
-for i=1:NDi
-    ud(i) = gDi(pointDi(i,1), pointDi(i,2));
-end
+
+% indexDi = geom.pivot.Di;
+% pointDi = XY(indexDi(:,1),:);
+% ud = zeros(NDi,1);
+% for i=1:NDi
+%     ud(i) = gDi(pointDi(i,1), pointDi(i,2));
+% end
 
 
 % Imponiamo condizioni di Neuman
