@@ -11,7 +11,7 @@ phi3 = @(x,y) 2*N3(x,y)*(N3(x,y) - 0.5);
 phi4 = @(x,y) 4*N3(x,y)*N1(x,y);
 phi5 = @(x,y) 4*N1(x,y)*N2(x,y);
 phi6 = @(x,y) 4*N2(x,y)*N3(x,y);
-phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)];
+phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]';
 
 Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y; 
     0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';

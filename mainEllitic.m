@@ -18,7 +18,7 @@ gNe = @(x,y) -16*x*(1-x);
 gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
-uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe);
+uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
 
 %% Plot soluzione approssimata
 XY = geom.elements.coordinates;

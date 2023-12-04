@@ -1,4 +1,4 @@
-function uh = FEMDiNeQuadratura2(geom, mu, beta, sigma, f, gDi, gNe)
+function uh = FEMDiNeQuadraturaNotGood(geom, mu, beta, sigma, f, gDi, gNe)
 %Assemblaggio FEM Dirichlet non omogeneo, calcolo coeff con nodi di
 %quadratura invece che approssimare con il baricentro
 pivot = geom.pivot.pivot;
@@ -32,57 +32,47 @@ end
 
 for e=1:Nele
     area_e = geom.support.TInfo(e).Area;
-     % Estraggo indici globali elemento e
-    indexVertexElement = geom.elements.triangles(e,:); % la considero Ge(k^)
     p1 = XY(ele(e,1),:);
     p2 = XY(ele(e,2),:);
     p3 = XY(ele(e,3),:);
-    dx1 = p3(1) - p2(1);
-    dx2 = p1(1) - p3(1);
-    dy1 = p2(2) - p3(2);
-    dy2 = p3(2) - p1(2);
-    B = [dx2, -dx1; -dy2, dy1];
+    B = [(p1-p3); (p2-p3)]';
+%     B2 = [dx2, -dx1; -dy2, dy1];
     invB = inv(B);
     c = p3';
     Fe = @(x,y) c + B*[x,y]';
     for j=1:3
         jj = pivot(ele(e,j));
         if jj > 0
-            for k=1:3
-                kk = pivot(ele(e,k));
-                if kk > 0 % assemblaggio classico di A
-                    phik = phi_matrix(:, k);
-                    phij = phi_matrix(:, j);
-                    dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
-                    dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
-                    Djk = 0;
-                    Cjk = 0;
-                    Rjk = 0;
-                    for q=1:Nq
-                        Djk = Djk + 2*area_e*omega(q)*mu(Fe(xhat(q),yhat(q)))*dphik(q,:)*invB*invB'*dphij(q,:)';
-                        Cjk = Cjk + 2*area_e*omega(q)*beta(Fe(xhat(q),yhat(q)))*invB'*dphik(q,:)'*phij(q);
-                        Rjk = Rjk + 2*area_e*omega(q)*sigma(Fe(xhat(q),yhat(q)))*phik(q)*phij(q);
-                    end
-                    A(jj,kk) = A(jj,kk) + Djk + Cjk + Rjk;
-                elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
-                    phik = phi_matrix(:, k);
-                    phij = phi_matrix(:, j);
-                    dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
-                    dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
-                    Djk = 0;
-                    Cjk = 0;
-                    Rjk = 0;
-                    for q=1:Nq
-                        coordFe = Fe(xhat(q),yhat(q));
+            for q=1:Nq
+                coordFe = Fe(xhat(q),yhat(q));
+                for k=1:3
+                    kk = pivot(ele(e,k));
+                    if kk > 0 % assemblaggio classico di A
+                        phik = phi_matrix(q, k);
+                        phij = phi_matrix(q, j);
+                        dphik = [dphix_matrix(q,k), dphiy_matrix(q,k)];
+                        dphij = [dphix_matrix(q,j), dphiy_matrix(q,j)];
+                        Djk = 0;
+                        Cjk = 0;
+                        Rjk = 0;
+                        Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik*invB*invB'*dphij';
+                        Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik'*phij;
+                        Rjk = Rjk + 2*area_e*omega(q)*sigma(coordFe(1), coordFe(2))*phik*phij;
+                        A(jj,kk) = A(jj,kk) + Djk + Cjk + Rjk;
+                    elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
+                        phik = phi_matrix(:, k);
+                        phij = phi_matrix(:, j);
+                        dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
+                        dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
+                        Djk = 0;
+                        Cjk = 0;
+                        Rjk = 0;
                         Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik(q,:)*invB*invB'*dphij(q,:)';
                         Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik(q,:)'*phij(q);
                         Rjk = Rjk + 2*area_e*omega(q)*sigma(coordFe(1), coordFe(2))*phik(q)*phij(q);
+                        Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Rjk;
                     end
-                    Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Rjk;
                 end
-            end
-            for q=1:Nq
-                coordFe = Fe(xhat(q),yhat(q));
                 b(jj) = b(jj) + 2*area_e*omega(q)*f(coordFe(1), coordFe(2))*phij(q);
             end
         end
@@ -133,4 +123,5 @@ for j=1:Np
         uh(j) = gDi(XY(j,1), XY(j,2));
     end
 end
+
 end
