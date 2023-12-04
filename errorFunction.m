@@ -1,4 +1,4 @@
-function [errorL2, errorH1] = errorFunction(geom, u, gradu, uh)
+function [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk)
 % calcolare stima errore conoscendo approssimazione uh e soluzione esatta u
 XY = geom.elements.coordinates;
 Nele = geom.nelements.nTriangles;
@@ -11,18 +11,32 @@ clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 
 % Definiamo matrici con i valori che andremo ad utilizzare nell'integrale CASO P1
-phi = @(x,y) [x, y, 1-x-y];
-Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
-phi_matrix = zeros(Nq,3);
-dphix_matrix = zeros(Nq,3);
-dphiy_matrix = zeros(Nq,3);
-for q=1:Nq
-    Jphi_temp = Jphi(xhat(q), yhat(q));
-    phi_matrix(q,:) = phi(xhat(q), yhat(q));
-    dphix_matrix(q,:) = Jphi_temp(:,1)';
-    dphiy_matrix(q,:) = Jphi_temp(:,2)';
+if Pk == 1
+    Nv = 3;
+    phi = @(x,y) [x, y, 1-x-y];
+    Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
+    phi_matrix = zeros(Nq,Nv);
+    dphix_matrix = zeros(Nq,Nv);
+    dphiy_matrix = zeros(Nq,Nv);
+    for q=1:Nq
+        Jphi_temp = Jphi(xhat(q), yhat(q));
+        phi_matrix(q,:) = phi(xhat(q), yhat(q));
+        dphix_matrix(q,:) = Jphi_temp(:,1)';
+        dphiy_matrix(q,:) = Jphi_temp(:,2)';
+    end
+elseif Pk == 2
+    run("P2script\functionP2.m")
+    Nv = 6;
+    phi_matrix = zeros(Nq,Nv);
+    dphix_matrix = zeros(Nq,Nv);
+    dphiy_matrix = zeros(Nq,Nv);
+    for q=1:Nq
+        Jphi_temp = Jphi(xhat(q), yhat(q));
+        phi_matrix(q,:) = phi(xhat(q), yhat(q));
+        dphix_matrix(q,:) = Jphi_temp(:,1)';
+        dphiy_matrix(q,:) = Jphi_temp(:,2)';
+    end
 end
-
 errorL2 = 0;
 errorH1 = 0;
 for e=1:Nele

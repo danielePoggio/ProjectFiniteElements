@@ -30,7 +30,7 @@ trisurf(tri, x, y, uh);
 title("Grafico funzione approssimata")
 
 %% calcoliamo stima dell'errore
-[errorL2, errorH1] = errorFunction(geom, u, gradu, uh);
+[errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
 
 %% Andiamo a vedere come estrarre il valore minimo e massimo dell'area nella triangolazione
 Area = [geom.support.TInfo.Area].';
