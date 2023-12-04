@@ -52,8 +52,8 @@ for l=1:Ktest
     close all
     Area = [geom.support.TInfo.Area].';
     areaTri(l) = max(Area);
-    uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe);
-    [errorL2, errorH1] = errorFunction(geom, u, gradu, uh);
+    uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
+    [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
     errorL2vec(l) = errorL2;
     errorH1vec(l) = errorH1;
 end
