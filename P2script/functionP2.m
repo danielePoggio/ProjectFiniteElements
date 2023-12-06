@@ -16,6 +16,15 @@ phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]'
 Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y; 
     0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
 
+Hphi = zeros(6,2,2);
+
+Hphi(1,:,:) = [4, 0; 0,0];
+Hphi(2,:,:) = [0, 0; 0,4];
+Hphi(3,:,:) = [4, 4; 4, 4];
+Hphi(4,:,:) = [-8, -4; -4, 0];
+Hphi(5,:,:) = [0, 4; 4, 0];
+Hphi(6,:,:) = [0, -4; -4, -4];
+
 clear N1 N2 N3 phi1 phi2 phi3 phi4 phi5 phi6
 
 

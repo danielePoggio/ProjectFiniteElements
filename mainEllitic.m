@@ -3,9 +3,9 @@ close all
 clc
 
 %% Eseguo Triangolazione sul Dominio
-% area = 0.02;
-% geom = Triangolator(area);
-% close all
+area = 0.02;
+geom = Triangolator(area);
+close all
 
 %% Problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y);
@@ -19,15 +19,16 @@ gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
 % uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
-
+Pk = 1;
+uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
 %% Plot soluzione approssimata
-% XY = geom.elements.coordinates;
-% x = XY(:,1);
-% y = XY(:,2);
-% figure(1)
-% tri = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-% trisurf(tri, x, y, uh);
-% title("Grafico funzione approssimata")
+XY = geom.elements.coordinates;
+x = XY(:,1);
+y = XY(:,2);
+figure(1)
+tri = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+trisurf(tri, x, y, uh);
+title("Grafico funzione approssimata")
 % 
 %% calcoliamo stima dell'errore
 % [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
@@ -37,6 +38,7 @@ gDi = @(x,y) 0;
 % areaMax = max(Area);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
+Pk = 1;
 Ktest = 4;
 areaTri = zeros(Ktest,1);
 areaTri(1) = 0.01;
@@ -53,7 +55,7 @@ for l=1:Ktest
     Area = [geom.support.TInfo.Area].';
     areaTri(l) = max(Area);
     uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
-    [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
+    [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
     errorL2vec(l) = errorL2;
     errorH1vec(l) = errorH1;
 end
@@ -68,9 +70,3 @@ loglog(sqrt(areaTri), errorH1vec)
 title("Andamento errore norma H1")
 
 pH1 = polyfit(log(sqrt(areaTri)), log(errorH1vec), 1);
-
-
-
-
-
-

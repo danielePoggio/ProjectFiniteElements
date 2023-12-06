@@ -3,9 +3,10 @@ close all
 clc
 
 %% Eseguo Triangolazione sul Dominio
-% area = 0.01;
-% geom = TriangolatorP2(area);
-% close all
+area = 0.01;
+Pk = 2;
+geom = TriangolatorP2(area);
+close all
 
 %% Problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y);
@@ -19,16 +20,17 @@ gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
 % uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
+uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
 
 %% Plot soluzione approssimata
 % tTable = tTableforP2plot(geom.elements.triangles);
-% XY = geom.elements.coordinates;
-% x = XY(:,1);
-% y = XY(:,2);
-% figure(1)
-% tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-% trisurf(tTable, x, y, uh);
-% title("Grafico funzione approssimata")
+XY = geom.elements.coordinates;
+x = XY(:,1);
+y = XY(:,2);
+figure(1)
+tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+trisurf(tTable, x, y, uh);
+title("Grafico funzione approssimata")
 
 % Calcolo errore
 % Pk = 2;
