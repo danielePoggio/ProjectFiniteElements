@@ -1,11 +1,11 @@
 clear all
 close all
 clc
-% ciao dfhfgd
+
 %% Eseguo Triangolazione sul Dominio
-area = 0.02;
-geom = Triangolator(area);
-close all
+% area = 0.02;
+% geom = Triangolator(area);
+% close all
 
 %% Problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y);
@@ -18,23 +18,23 @@ gNe = @(x,y) -16*x*(1-x);
 gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
-uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
+% uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
 
 %% Plot soluzione approssimata
-XY = geom.elements.coordinates;
-x = XY(:,1);
-y = XY(:,2);
-figure(1)
-tri = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-trisurf(tri, x, y, uh);
-title("Grafico funzione approssimata")
-
+% XY = geom.elements.coordinates;
+% x = XY(:,1);
+% y = XY(:,2);
+% figure(1)
+% tri = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+% trisurf(tri, x, y, uh);
+% title("Grafico funzione approssimata")
+% 
 %% calcoliamo stima dell'errore
-[errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
-
-%% Andiamo a vedere come estrarre il valore minimo e massimo dell'area nella triangolazione
-Area = [geom.support.TInfo.Area].';
-areaMax = max(Area);
+% [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
+% 
+% %% Andiamo a vedere come estrarre il valore minimo e massimo dell'area nella triangolazione
+% Area = [geom.support.TInfo.Area].';
+% areaMax = max(Area);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
 Ktest = 4;

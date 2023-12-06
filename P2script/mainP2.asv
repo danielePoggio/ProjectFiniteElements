@@ -51,17 +51,18 @@ for l=1:Ktest
     end
 %     if area == 0
     geom = Triangolator(area);
-    close all
     Area = [geom.support.TInfo.Area].';
     maxArea = max(Area);
     areaTri(l) = maxArea;
     run("P2.m")
     clear acc D Di e el idx InputVertexvalue InputVertexValue I n nnode Vertex VertexValue
+    close all
+    
     uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
     [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
-    clear geom
     errorL2vec(l) = errorL2;
-    errorH1vec(l) = errorH1; 
+    errorH1vec(l) = errorH1;
+    clear geom
 end
 figure(1)
 loglog(sqrt(areaTri), errorL2vec)
