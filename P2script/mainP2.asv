@@ -3,11 +3,9 @@ close all
 clc
 
 %% Eseguo Triangolazione sul Dominio
-% area = 0.01;
-% geom = Triangolator(area);
-% run("P2.m")
-% clear acc D Di e el idx InputVertexvalue InputVertexValue I n nnode Vertex VertexValue
-% close all
+area = 0.01;
+geom = TriangolatorP2(area);
+close all
 
 %% Problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y);
@@ -20,21 +18,21 @@ gNe = @(x,y) -16*x*(1-x);
 gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
-% uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
-% 
-% %% Plot soluzione approssimata
+uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
+
+%% Plot soluzione approssimata
 % tTable = tTableforP2plot(geom.elements.triangles);
-% XY = geom.elements.coordinates;
-% x = XY(:,1);
-% y = XY(:,2);
-% figure(1)
-% % tri = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-% trisurf(tTable, x, y, uh);
-% title("Grafico funzione approssimata")
-% 
-%% Calcolo errore
-% Pk = 2;
-% [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
+XY = geom.elements.coordinates;
+x = XY(:,1);
+y = XY(:,2);
+figure(1)
+tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+trisurf(tTable, x, y, uh);
+title("Grafico funzione approssimata")
+
+% Calcolo errore
+Pk = 2;
+[errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
 Pk = 2;
@@ -50,19 +48,16 @@ for l=1:Ktest
         area = areaTri(l-1)/4;
     end
 %     if area == 0
-    geom = Triangolator(area);
+    geom = TriangolatorP2(area);
+    close all
     Area = [geom.support.TInfo.Area].';
     maxArea = max(Area);
     areaTri(l) = maxArea;
-    run("P2.m")
-    clear acc D Di e el idx InputVertexvalue InputVertexValue I n nnode Vertex VertexValue
-    close all
-    
     uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
     [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
-    errorL2vec(l) = errorL2;
-    errorH1vec(l) = errorH1;
     clear geom
+    errorL2vec(l) = errorL2;
+    errorH1vec(l) = errorH1; 
 end
 figure(1)
 loglog(sqrt(areaTri), errorL2vec)

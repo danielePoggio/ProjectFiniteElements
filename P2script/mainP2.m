@@ -4,9 +4,7 @@ clc
 
 %% Eseguo Triangolazione sul Dominio
 % area = 0.01;
-% geom = Triangolator(area);
-% run("P2.m")
-% clear acc D Di e el idx InputVertexvalue InputVertexValue I n nnode Vertex VertexValue
+% geom = TriangolatorP2(area);
 % close all
 
 %% Problema differenziale
@@ -21,18 +19,18 @@ gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
 % uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
-% 
-% %% Plot soluzione approssimata
+
+%% Plot soluzione approssimata
 % tTable = tTableforP2plot(geom.elements.triangles);
 % XY = geom.elements.coordinates;
 % x = XY(:,1);
 % y = XY(:,2);
 % figure(1)
-% % tri = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+% tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
 % trisurf(tTable, x, y, uh);
 % title("Grafico funzione approssimata")
-% 
-%% Calcolo errore
+
+% Calcolo errore
 % Pk = 2;
 % [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
 
@@ -50,13 +48,11 @@ for l=1:Ktest
         area = areaTri(l-1)/4;
     end
 %     if area == 0
-    geom = Triangolator(area);
+    geom = TriangolatorP2(area);
     close all
     Area = [geom.support.TInfo.Area].';
     maxArea = max(Area);
     areaTri(l) = maxArea;
-    run("P2.m")
-    clear acc D Di e el idx InputVertexvalue InputVertexValue I n nnode Vertex VertexValue
     uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
     [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
     clear geom
