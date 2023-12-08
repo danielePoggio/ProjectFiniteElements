@@ -15,7 +15,20 @@ b = zeros(Ndof,1);
 % ricaviamo nodi di quadratura
 run("nodes_weights.m")
 % estraiamo funzioni P2
-run("functionP2")
+Nv = 6;
+N1 = @(x,y) x;
+N2 = @(x,y) y;
+N3 = @(x,y) 1 - x - y;
+phi1 = @(x,y) 2*N1(x,y)*(N1(x,y) - 0.5);
+phi2 = @(x,y) 2*N2(x,y)*(N2(x,y) - 0.5);
+phi3 = @(x,y) 2*N3(x,y)*(N3(x,y) - 0.5);
+phi4 = @(x,y) 4*N3(x,y)*N1(x,y);
+phi5 = @(x,y) 4*N1(x,y)*N2(x,y);
+phi6 = @(x,y) 4*N2(x,y)*N3(x,y);
+phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]';
+
+Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y;
+    0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
 clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 
@@ -103,8 +116,10 @@ for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);
     indexE = geom.elements.borders(edge,2);
+    indexM = geom.elements.borders(edge,5);
     Vb = XY(indexB,:);
     Ve = XY(indexE,:);
+    Vm = XY(indexM,:);
     edgeLen = norm(Ve - Vb,2);
     ii = geom.pivot.pivot(indexB);
     if ii > 0

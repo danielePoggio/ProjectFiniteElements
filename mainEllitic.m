@@ -18,16 +18,18 @@ gNe = @(x,y) -16*x*(1-x);
 gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
-% uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
-Pk = 1;
-uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
+uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
+% Pk = 1;
+% uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
 %% Plot soluzione approssimata
 XY = geom.elements.coordinates;
+ele = geom.elements.triangles;
 x = XY(:,1);
 y = XY(:,2);
 figure(1)
 tri = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-trisurf(tri, x, y, uh);
+tTable = tTableforP2plot(ele);
+trisurf(tTable, x, y, uh);
 title("Grafico funzione approssimata")
 % 
 %% calcoliamo stima dell'errore
