@@ -23,11 +23,15 @@ Nq = length(xhat); % numero nodi di quadratura
 phi_matrix = zeros(Nq,Nv);
 dphix_matrix = zeros(Nq,Nv);
 dphiy_matrix = zeros(Nq,Nv);
+gradphiTensor = zeros(Nv,Nq,2,1);
+
 for q=1:Nq
     Jphi_temp = Jphi(xhat(q), yhat(q));
     phi_matrix(q,:) = phi(xhat(q), yhat(q));
     dphix_matrix(q,:) = Jphi_temp(:,1)';
     dphiy_matrix(q,:) = Jphi_temp(:,2)';
+    gradphiTensor(:,q,:) = reshape(Jphi_temp, Nv,1,2);
+
 end
 
 for e=1:Nele
@@ -40,49 +44,41 @@ for e=1:Nele
     prodinvBinvbt = invB*invB'; % per accelerare lo calcolo una sola volta
     c = p3';
     Fe = @(x,y) c + B*[x,y]';
+    a = zeros(Nq,1);
+    d = zeros(Nq,2);
+    c = zeros(Nq,1);
+    fq = zeros(Nq,1);
+    for q=1:Nq
+        coordFeq = Fe(xhat(q),yhat(q));
+        a(q) = mu(coordFeq(1), coordFeq(2))*omega(q);
+        d(q,:) = beta(coordFeq(1), coordFeq(2))'*omega(q);
+        c(q) = sigma(coordFeq(1), coordFeq(2))*omega(q);
+        fq(q) = f(coordFeq(1), coordFeq(2))*omega(q);
+    end
     for j=1:Nv
         jj = pivot(ele(e,j));
         if jj > 0
             for k=1:Nv
                 kk = pivot(ele(e,k));
                 if kk > 0 % assemblaggio classico di A
-                    phik = phi_matrix(:, k);
-                    phij = phi_matrix(:, j);
-                    dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)]';
-                    dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)]';
-                    Djk = 0;
-                    Cjk = 0;
-                    Rjk = 0;
-                    for q=1:Nq
-                        coordFeq = Fe(xhat(q),yhat(q));
-                        dphikq = dphik(:,q);
-                        dphijq = dphij(:,q);
-                        Djk = Djk + 2*area_e*omega(q)*mu(coordFeq(1), coordFeq(2))*dphikq'*prodinvBinvbt*dphijq;
-                        Cjk = Cjk + 2*area_e*omega(q)*beta(coordFeq(1), coordFeq(2))*invB'*dphikq*phij(q);
-                        Rjk = Rjk + 2*area_e*omega(q)*sigma(coordFeq(1), coordFeq(2))*phik(q)*phij(q);
-                    end
+                    gradphij = reshape(gradphiTensor(j,:,:), Nq ,2 ,1);
+                    gradphik = reshape(gradphiTensor(k,:,:), Nq ,2 ,1);
+                    bwp = d.*reshape(phi_matrix(:,k),Nq,1);
+                    Djk = 2*area_e*a'*(gradphik.*(gradphij*prodinvBinvbt')*ones(2,1));
+                    Cjk = 2*area_e*sum(bwp.*(gradphik*invB),"all");
+                    Rjk = 2*area_e*sum(c.*phi_matrix(:,k).*phi_matrix(:,j), "all");
                     A(jj,kk) = A(jj,kk) + Djk + Cjk + Rjk;
                 elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
-                    phik = phi_matrix(:, k);
-                    phij = phi_matrix(:, j);
-                    dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
-                    dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
-                    Djk = 0;
-                    Cjk = 0;
-                    Rjk = 0;
-                    for q=1:Nq
-                        coordFeq = Fe(xhat(q),yhat(q));
-                        Djk = Djk + 2*area_e*omega(q)*mu(coordFeq(1), coordFeq(2))*dphik(q,:)*prodinvBinvbt'*dphij(q,:)';
-                        Cjk = Cjk + 2*area_e*omega(q)*beta(coordFeq(1), coordFeq(2))*invB'*dphik(q,:)'*phij(q);
-                        Rjk = Rjk + 2*area_e*omega(q)*sigma(coordFeq(1), coordFeq(2))*phik(q)*phij(q);
-                    end
+                    gradphij = reshape(gradphiTensor(j,:,:), Nq ,2 ,1);
+                    gradphik = reshape(gradphiTensor(k,:,:), Nq ,2 ,1);
+                    bwp = d.*reshape(phi_matrix(:,k),Nq,1);
+                    Djk = 2*area_e*a'*(gradphik.*(gradphij*prodinvBinvbt')*ones(2,1));
+                    Cjk = 2*area_e*sum(bwp.*(gradphik*invB),"all");
+                    Rjk = 2*area_e*sum(c.*phi_matrix(:,k).*phi_matrix(:,j), "all");
                     Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Rjk;
                 end
             end
-            for q=1:Nq
-                coordFeq = Fe(xhat(q),yhat(q));
-                b(jj) = b(jj) + 2*area_e*omega(q)*f(coordFeq(1), coordFeq(2))*phij(q);
-            end
+            b = b + sum(fq,"all");
         end
     end
 end

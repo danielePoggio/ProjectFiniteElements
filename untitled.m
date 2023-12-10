@@ -1,0 +1,9 @@
+k = 1
+j = 2
+e = 1;
+gradphij = reshape(gradphiTensor(j,:,:), Nq ,2 ,1);
+gradphik = reshape(gradphiTensor(k,:,:), Nq ,2 ,1);
+prod1 = gradphij*prodinvBinvbt';
+prod2 = gradphik.*(gradphij*prodinvBinvbt');
+prod3 = omega*(gradphik.*(gradphij*prodinvBinvbt')*ones(2,1));
+final = sum(prod3,"all");

@@ -1,6 +1,5 @@
-function uh = FEMDiNeQuadraturaNotGood(geom, mu, beta, sigma, f, gDi, gNe)
-%Assemblaggio FEM Dirichlet non omogeneo, calcolo coeff con nodi di
-%quadratura invece che approssimare con il baricentro
+function uh = FEMDiNeP2DNW(geom, mu, beta, sigma, f, gDi, gNe)
+%Assemblaggio FEM Dirichlet non omogeneo
 pivot = geom.pivot.pivot;
 ele = geom.elements.triangles;
 XY = geom.elements.coordinates;
@@ -12,42 +11,15 @@ A = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
 b = zeros(Ndof,1);
 
-% definiamo i nodi di quadratura e i pesi associati
-sqrt15 = sqrt(15.0);
-
-xhat = [ 1/3,...
-	 (6 + sqrt15) / 21,...
-	 (9 - 2*sqrt15) / 21,...
-	 (6 + sqrt15) / 21,...
-	 (6 - sqrt15) / 21,...
-	 (9 + 2*sqrt15) / 21,...
-	 (6 - sqrt15) / 21];
-
-yhat = [1/3,...
-	(6 + sqrt15) / 21,...
-	(6 + sqrt15) / 21,...
-	(9 - 2*sqrt15) / 21,...
-	(6 - sqrt15) / 21,...
-	(6 - sqrt15) / 21,...
-	(9 + 2*sqrt15) / 21];
-
-% sum(omega)=1/2
-% int_T 1 d Omega = |T|
-omega = [ 9/80,...
-          (155 + sqrt15) / 2400,...
-          (155 + sqrt15) / 2400,...
-          (155 + sqrt15) / 2400,...
-          (155 - sqrt15) / 2400,...
-          (155 - sqrt15) / 2400,...
-          (155 - sqrt15) / 2400];
-
+% ricaviamo nodi di quadratura
+run("nodes_weights.m")
+% estraiamo funzioni P2
+run("functionP2")
 clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 
-% Definiamo matrici con i valori che andremo ad utilizzare nell'integrale CASO P1
-Nv = 3;
-phi = @(x,y) [x, y, 1-x-y];
-Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
+% Definiamo matrici con i valori che andremo ad utilizzare nell'integrale
+% CASO P2
 phi_matrix = zeros(Nq,Nv);
 dphix_matrix = zeros(Nq,Nv);
 dphiy_matrix = zeros(Nq,Nv);
@@ -106,7 +78,7 @@ for e=1:Nele
                     Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Rjk;
                 end
             end
-            b = b + sum(fq,"all");
+            b = 
         end
     end
 end
@@ -155,5 +127,4 @@ for j=1:Np
         uh(j) = gDi(XY(j,1), XY(j,2));
     end
 end
-
 end

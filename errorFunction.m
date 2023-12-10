@@ -12,7 +12,6 @@ Nq = length(xhat); % numero nodi di quadratura
 
 % Definiamo matrici con i valori che andremo ad utilizzare nell'integrale CASO P1
 if Pk == 1
-    Nv = 3;
     phi = @(x,y) [x, y, 1-x-y];
     Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
     phi_matrix = zeros(Nq,Nv);
@@ -25,7 +24,6 @@ if Pk == 1
         dphiy_matrix(q,:) = Jphi_temp(:,2)';
     end
 elseif Pk == 2
-    Nv = 6;
     N1 = @(x,y) x;
     N2 = @(x,y) y;
     N3 = @(x,y) 1 - x - y;
@@ -42,11 +40,14 @@ elseif Pk == 2
     phi_matrix = zeros(Nq,Nv);
     dphix_matrix = zeros(Nq,Nv);
     dphiy_matrix = zeros(Nq,Nv);
+    gradphiTensor = zeros(Nv,Nq,2,1);
     for q=1:Nq
         Jphi_temp = Jphi(xhat(q), yhat(q));
         phi_matrix(q,:) = phi(xhat(q), yhat(q));
         dphix_matrix(q,:) = Jphi_temp(:,1)';
         dphiy_matrix(q,:) = Jphi_temp(:,2)';
+        gradphiTensor(:,q,:) = reshape(Jphi_temp, Nv,1,2);
+
     end
 end
 errorL2 = 0;
@@ -68,7 +69,7 @@ for e=1:Nele
     for q=1:Nq
         approx_uh = 0;
         approx_grad = zeros(2,1);
-        for k=1:Nv
+        for k=1:Nv % calcolo le approssimazioni di uh e graduh
             approx_uh = approx_uh + uh(indexVertexElement(k))*phi_matrix(q,k);
             approx_grad = approx_grad + uh(indexVertexElement(k))*[dphix_matrix(q,k), dphiy_matrix(q,k)]';
         end
@@ -78,7 +79,6 @@ for e=1:Nele
         temp = temp + 2*omega(q)*area_e*(vec'*vec);
     end
     errorL2 = errorL2 + integralTriangle;
-    %temp = temp + 2*omega(q)*area_e*norm(vec,2)^2;
     errorH1 = errorH1 + temp;
 end
 errorL2 = sqrt(errorL2);
