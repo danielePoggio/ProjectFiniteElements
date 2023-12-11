@@ -111,7 +111,7 @@ end
 Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
-bNeumann = zeros(length(b), 1);
+bNeumannP2 = zeros(Ndof, 1);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);
@@ -123,14 +123,14 @@ for e=1:nedgeBorders
     edgeLen = norm(Ve - Vb,2);
     ii = geom.pivot.pivot(indexB);
     if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
+        bNeumannP2(ii) = bNeumannP2(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
     end
     ii = geom.pivot.pivot(indexE);
     if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
+        bNeumannP2(ii) = bNeumannP2(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
     end
 end
-b = b + bNeumann;
+b = b + bNeumannP2;
 
 % Risolviamo Sistema Lineare
 x = A\(b-Ad*ud);

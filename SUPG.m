@@ -1,5 +1,5 @@
 function uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe)
-%SUPG for P1 elements only
+%SUPG for mu costante
 pivot = geom.pivot.pivot;
 ele = geom.elements.triangles;
 XY = geom.elements.coordinates;
@@ -99,7 +99,7 @@ for e=1:Nele
                     phij = phi_matrix(:, j);
                     dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
                     dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
-                    Hphik = invB'*invB'*reshape(Hphi(k,:,:),2,2);
+                    Hphik = invB'*reshape(Hphi(k,:,:),2,2)*invB;
                     d2phik = Hphik(1,1) + Hphik(2,2);
                     Djk = 0;
                     Gjk = 0;
@@ -112,9 +112,9 @@ for e=1:Nele
                         Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik(q,:)*prodinvBinvBt*dphij(q,:)';
                         Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik(q,:)'*phij(q);
                         Gjk = Gjk + tau(e)*2*area_e*omega(q)*dphik(q,:)*prodinvBbetabetaInvBt*dphij(q,:)';
-                        Pjk = Pjk + tau(e)*2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*d2phik*beta(coordFe(1), coordFe(2))*dphij(q,:)';
+                        Pjk = Pjk + tau(e)*2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*d2phik*beta(coordFe(1), coordFe(2))*(invB'*dphij(q,:)');
                     end
-                    A(jj,kk) = A(jj,kk) + Djk + Cjk;
+                    A(jj,kk) = A(jj,kk) + Djk + Cjk + Gjk + Pjk;
                 elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
                     phij = phi_matrix(:, j);
                     dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
@@ -123,10 +123,14 @@ for e=1:Nele
                     Cjk = 0;
                     for q=1:Nq
                         coordFe = Fe(xhat(q),yhat(q));
+                        betaq = beta(coordFe(1), coordFe(2));
+                        prodinvBbetabetaInvBt = invB*(betaq*betaq')*invB';
                         Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik(q,:)*prodinvBinvBt*dphij(q,:)';
                         Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik(q,:)'*phij(q);
+                        Gjk = Gjk + tau(e)*2*area_e*omega(q)*dphik(q,:)*prodinvBbetabetaInvBt*dphij(q,:)';
+                        Pjk = Pjk + tau(e)*2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*d2phik*beta(coordFe(1), coordFe(2))*(invB'*dphij(q,:)');
                     end
-                    Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk;
+                    Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Gjk + Pjk;
                 end
             end
             for q=1:Nq

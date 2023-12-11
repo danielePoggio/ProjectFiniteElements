@@ -63,7 +63,7 @@ end
 Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
-bNeumann = zeros(length(b), 1);
+bNeumann = zeros(Ndof, 1);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);

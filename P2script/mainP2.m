@@ -32,14 +32,14 @@ gDi = @(x,y) 0;
 
 %% Plot soluzione approssimata
 % tTable = tTableforP2plot(geom.elements.triangles);
-% XY = geom.elements.coordinates;
-% x = XY(:,1);
-% y = XY(:,2);
-% figure(1)
-% tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-% trisurf(tTable, x, y, uh);
-% title("Grafico funzione approssimata")
-% 
+XY = geom.elements.coordinates;
+x = XY(:,1);
+y = XY(:,2);
+figure(1)
+tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+trisurf(tTable, x, y, uh);
+title("Grafico funzione approssimata")
+
 % Calcolo errore
 % Pk = 2;
 % [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
