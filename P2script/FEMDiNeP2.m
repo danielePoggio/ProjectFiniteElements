@@ -1,4 +1,4 @@
-function uh = FEMDiNeP2Fra(geom, mu, beta, sigma, f, gDi, gNe)
+function uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe)
 %Assemblaggio FEM Dirichlet non omogeneo, calcolo coeff con nodi di
 %quadratura invece che approssimare con il baricentro
 pivot = geom.pivot.pivot;
