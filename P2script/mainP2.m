@@ -27,18 +27,18 @@ gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
 % Pk = 2;
-% uh = FEMDiNeP2tentativo(geom, mu, beta, sigma, f, gDi, gNe);
+% uh = FEMDiNeP2Fra(geom, mu, beta, sigma, f, gDi, gNe);
 % uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
 
 %% Plot soluzione approssimata
 % tTable = tTableforP2plot(geom.elements.triangles);
-XY = geom.elements.coordinates;
-x = XY(:,1);
-y = XY(:,2);
-figure(1)
-tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-trisurf(tTable, x, y, uh);
-title("Grafico funzione approssimata")
+% XY = geom.elements.coordinates;
+% x = XY(:,1);
+% y = XY(:,2);
+% figure(1)
+% tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+% trisurf(tTable, x, y, uh);
+% title("Grafico funzione approssimata")
 
 % Calcolo errore
 % Pk = 2;
@@ -62,7 +62,7 @@ for l=1:Ktest
     Area = [geom.support.TInfo.Area].';
     maxArea = max(Area);
     areaTri(l) = maxArea;
-    uh = FEMDiNeP2tentativo(geom, mu, beta, sigma, f, gDi, gNe);
+    uh = FEMDiNeP2Fra(geom, mu, beta, sigma, f, gDi, gNe);
     [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
     clear geom
     errorL2vec(l) = errorL2;
