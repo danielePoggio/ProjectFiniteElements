@@ -121,23 +121,17 @@ for e=1:nedgeBorders
     Ve = XY(indexE,:);
     Vm = XY(indexM,:);
     edgeLen = norm(Ve - Vb,2);
-    q = 5;
-    t = linspace(0,1,q);
-    V = zeros(q,q);
-    y = zeros(q,1);
-    for i=0:(q-1)
-        V(i+1,:) = t.^i;
-        y(i+1) = 1/(i+1);
-    end
-    w = V\y;
-
+    % scrivo le funzioni della base rispetto al lato (diventano funzioni
+    % 1D)
     phi1 = @(t) 2*(t-0.5)*(t-1);
     phi2 = @(t) -4*t*(t-1);
     phi3 = @(t) 2*t*(t-0.5);
-
     phi = @(t) [phi1(t), phi2(t), phi3(t)]';
+    % sfrutto questa forma matriciale per andare a calcolare i vari
+    % integrali : int(phii*phij)
     phiM = @(t) phi(t)*phi(t)';
     phiTensor = zeros(3,3,q);
+    w = nodiQuadratura1D(Nq);
     for k=1:q
         phiTensor(:,:,k) = w(k)*phiM(t(k));
     end
