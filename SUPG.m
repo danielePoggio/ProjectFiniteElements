@@ -28,7 +28,6 @@ if Pk == 1
     phi = @(x,y) [N1(x,y), N2(x,y), N3(x,y)];
     Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
     Hphi = zeros(6,2,2);
-
     mk = 1/3;
 elseif Pk == 2
     Nv = 6;
@@ -39,7 +38,6 @@ elseif Pk == 2
     phi5 = @(x,y) 4*N1(x,y)*N2(x,y);
     phi6 = @(x,y) 4*N2(x,y)*N3(x,y);
     phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]';
-
     Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y;
         0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
     Hphi(1,:,:) = [4, 0; 0,0];
@@ -48,9 +46,7 @@ elseif Pk == 2
     Hphi(4,:,:) = [-8, -4; -4, 0];
     Hphi(5,:,:) = [0, 4; 4, 0];
     Hphi(6,:,:) = [0, -4; -4, -4];
-
     clear N1 N2 N3 phi1 phi2 phi3 phi4 phi5 phi6
-
     mk = 1/24;
 end
 phi_matrix = zeros(Nq,Nv);
@@ -64,7 +60,6 @@ for q=1:Nq
 end
 % calcoliamo viscosità artificiale
 tau = zeros(Nele,1);
-
 for e=1:Nele
     p1 = XY(ele(e,1),:);
     p2 = XY(ele(e,2),:);

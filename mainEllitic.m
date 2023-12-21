@@ -3,9 +3,9 @@ close all
 clc
 
 %% Eseguo Triangolazione sul Dominio
-% area = 0.0002;
-% geom = Triangolator(area);
-% close all
+area = 0.02;
+geom = Triangolator(area);
+close all
 
 %% Problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y);
@@ -14,9 +14,9 @@ d2ux = @(x,y) [32*conj(y)*(conj(y) - 1), 16*(conj(x) - 1)*(2*conj(y) - 1) + 16*c
 d2uy = @(x,y) [16*(conj(y) - 1)*(2*conj(x) - 1) + 16*conj(y)*(2*conj(x) - 1),32*conj(x)*(conj(x) - 1)];
 Hu = @(x,y) [d2ux(x,y); d2uy(x,y)]';
 d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
-mu = @(x,y) 1.0;
+mu = @(x,y) 0.001;
 beta = @(x,y) [3.0, 0.0];
-sigma = @(x,y) 4.0;
+sigma = @(x,y) 0.0;
 f = @(x,y) -mu(x,y)*d2u(x,y)+beta(x,y)*gradu(x,y)+sigma(x,y)*u(x,y);
 % f = @(x,y) 32*(x*(1-x) + y*(1-y));% + 16*(1-2*x)*(y*(1-y));
 n = [0,-1]'; % direzione uscente da lato su y = 0
@@ -26,19 +26,19 @@ gDi = @(x,y) 0;
 
 
 %% Soluzione problema discretizzato
-% uh = FEMDiNeQuadraturaNotGood(geom, mu, beta, sigma, f, gDi, gNe);
-% Pk = 1;
-% uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
+% uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe);
+Pk = 1;
+uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
 %% Plot soluzione approssimata
-% XY = geom.elements.coordinates;
-% ele = geom.elements.triangles;
-% x = XY(:,1);
-% y = XY(:,2);
-% figure(1)
-% tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-% % tTable = tTableforP2plot(ele);
-% trisurf(tTable, x, y, uh);
-% title("Grafico funzione approssimata")
+XY = geom.elements.coordinates;
+ele = geom.elements.triangles;
+x = XY(:,1);
+y = XY(:,2);
+figure(1)
+tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
+% tTable = tTableforP2plot(ele);
+trisurf(tTable, x, y, uh);
+title("Grafico funzione approssimata")
 % 
 %% calcoliamo stima dell'errore
 % [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
