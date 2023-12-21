@@ -3,7 +3,7 @@ close all
 clc
 
 %% Eseguo Triangolazione sul Dominio
-area = 0.02;
+area = 0.002;
 geom = Triangolator(area);
 close all
 
@@ -20,7 +20,7 @@ sigma = @(x,y) 0.0;
 f = @(x,y) -mu(x,y)*d2u(x,y)+beta(x,y)*gradu(x,y)+sigma(x,y)*u(x,y);
 % f = @(x,y) 32*(x*(1-x) + y*(1-y));% + 16*(1-2*x)*(y*(1-y));
 n = [0,-1]'; % direzione uscente da lato su y = 0
-gNe = @(x,y) n'*gradu(x,0);% @(x,y) -16*x*(1-x);
+gNe = @(x,y) mu(x,y)*n'*gradu(x,0);% @(x,y) -16*x*(1-x);
 % gNe = @(x,y) -16*x*(1-x);
 gDi = @(x,y) 0;
 
