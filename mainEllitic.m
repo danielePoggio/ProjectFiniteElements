@@ -48,35 +48,35 @@ title("Grafico funzione approssimata")
 % areaMax = max(Area);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
-Pk = 1;
-Ktest = 4;
-areaTri = zeros(Ktest,1);
-areaTri(1) = 0.01;
-errorL2vec = zeros(Ktest,1);
-errorH1vec = zeros(Ktest,1);
-for l=1:Ktest
-    if l == 1
-        area = areaTri(1);
-    else
-        area = areaTri(l-1)/4;
-    end
-    geom = Triangolator(area);
-    close all
-    Area = [geom.support.TInfo.Area].';
-    areaTri(l) = max(Area);
-    uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
-    [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
-    errorL2vec(l) = errorL2;
-    errorH1vec(l) = errorH1;
-end
-figure(1)
-loglog(sqrt(areaTri), errorL2vec)
-title("Andamento errore norma L2")
-
-pL2 = polyfit(log(sqrt(areaTri)), log(errorL2vec), 1);
-
-figure(2)
-loglog(sqrt(areaTri), errorH1vec)
-title("Andamento errore norma H1")
-
-pH1 = polyfit(log(sqrt(areaTri)), log(errorH1vec), 1);
+% Pk = 1;
+% Ktest = 4;
+% areaTri = zeros(Ktest,1);
+% areaTri(1) = 0.01;
+% errorL2vec = zeros(Ktest,1);
+% errorH1vec = zeros(Ktest,1);
+% for l=1:Ktest
+%     if l == 1
+%         area = areaTri(1);
+%     else
+%         area = areaTri(l-1)/4;
+%     end
+%     geom = Triangolator(area);
+%     close all
+%     Area = [geom.support.TInfo.Area].';
+%     areaTri(l) = max(Area);
+%     uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe);
+%     [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
+%     errorL2vec(l) = errorL2;
+%     errorH1vec(l) = errorH1;
+% end
+% figure(1)
+% loglog(sqrt(areaTri), errorL2vec)
+% title("Andamento errore norma L2")
+% 
+% pL2 = polyfit(log(sqrt(areaTri)), log(errorL2vec), 1);
+% 
+% figure(2)
+% loglog(sqrt(areaTri), errorH1vec)
+% title("Andamento errore norma H1")
+% 
+% pH1 = polyfit(log(sqrt(areaTri)), log(errorH1vec), 1);

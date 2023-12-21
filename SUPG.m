@@ -27,7 +27,7 @@ if Pk == 1
     Nv = 3;
     phi = @(x,y) [N1(x,y), N2(x,y), N3(x,y)];
     Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
-    Hphi = zeros(6,2,2);
+    Hphi = zeros(2,2,6);
     mk = 1/3;
 elseif Pk == 2
     Nv = 6;
@@ -40,12 +40,13 @@ elseif Pk == 2
     phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]';
     Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y;
         0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
-    Hphi(1,:,:) = [4, 0; 0,0];
-    Hphi(2,:,:) = [0, 0; 0,4];
-    Hphi(3,:,:) = [4, 4; 4, 4];
-    Hphi(4,:,:) = [-8, -4; -4, 0];
-    Hphi(5,:,:) = [0, 4; 4, 0];
-    Hphi(6,:,:) = [0, -4; -4, -4];
+    Hphi = zeros(2,2,6);
+    Hphi(:,:,1) = [4, 0; 0,0];
+    Hphi(:,:,2) = [0, 0; 0,4];
+    Hphi(:,:,3) = [4, 4; 4, 4];
+    Hphi(:,:,4) = [-8, -4; -4, 0];
+    Hphi(:,:,5) = [0, 4; 4, 0];
+    Hphi(:,:,6) = [0, -4; -4, -4];
     clear N1 N2 N3 phi1 phi2 phi3 phi4 phi5 phi6
     mk = 1/24;
 end
@@ -70,7 +71,6 @@ for e=1:Nele
     prodinvBinvBt = invB*invB'; % per accelerare lo calcolo una sola volta
     c = p3';
     Fe = @(x,y) c + B*[x,y]';
-
     % calcoliamo norma di beta su E e viscosità artificiale tau(e)
     normBetaQuad = 0;
     for q=1:Nq
@@ -84,7 +84,6 @@ for e=1:Nele
     elseif Pe >= 1
         tau(e) = sqrt(area_e)*0.5/normaBeta;
     end
-
     for j=1:Nv
         jj = pivot(ele(e,j));
         if jj > 0
@@ -94,7 +93,7 @@ for e=1:Nele
                     phij = phi_matrix(:, j);
                     dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
                     dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
-                    Hphik = invB'*reshape(Hphi(k,:,:),2,2)*invB;
+                    Hphik = invB'*Hphi(:,:,k)*invB;
                     d2phik = Hphik(1,1) + Hphik(2,2);
                     Djk = 0;
                     Gjk = 0;
@@ -103,10 +102,10 @@ for e=1:Nele
                     for q=1:Nq
                         coordFe = Fe(xhat(q),yhat(q));
                         betaq = beta(coordFe(1), coordFe(2));
-                        prodinvBbetabetaInvBt = invB*(betaq*betaq')*invB';
+                        prodbetatinvBt = betaq*invB';
                         Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik(q,:)*prodinvBinvBt*dphij(q,:)';
                         Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik(q,:)'*phij(q);
-                        Gjk = Gjk + tau(e)*2*area_e*omega(q)*dphik(q,:)*prodinvBbetabetaInvBt*dphij(q,:)';
+                        Gjk = Gjk + tau(e)*2*area_e*omega(q)*(prodbetatinvBt*dphik(q,:)')*(prodbetatinvBt*dphij(q,:)');
                         Pjk = Pjk + tau(e)*2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*d2phik*beta(coordFe(1), coordFe(2))*(invB'*dphij(q,:)');
                     end
                     A(jj,kk) = A(jj,kk) + Djk + Cjk + Gjk + Pjk;
@@ -114,15 +113,19 @@ for e=1:Nele
                     phij = phi_matrix(:, j);
                     dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
                     dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
+                    Hphik = invB'*Hphi(:,:,k)*invB;
+                    d2phik = Hphik(1,1) + Hphik(2,2);
                     Djk = 0;
+                    Gjk = 0;
                     Cjk = 0;
+                    Pjk = 0;
                     for q=1:Nq
                         coordFe = Fe(xhat(q),yhat(q));
                         betaq = beta(coordFe(1), coordFe(2));
-                        prodinvBbetabetaInvBt = invB*(betaq*betaq')*invB';
+                        prodbetatinvBt = betaq*invB';
                         Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik(q,:)*prodinvBinvBt*dphij(q,:)';
                         Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik(q,:)'*phij(q);
-                        Gjk = Gjk + tau(e)*2*area_e*omega(q)*dphik(q,:)*prodinvBbetabetaInvBt*dphij(q,:)';
+                        Gjk = Gjk + tau(e)*2*area_e*omega(q)*(prodbetatinvBt*dphik(q,:)')*(prodbetatinvBt*dphij(q,:)');
                         Pjk = Pjk + tau(e)*2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*d2phik*beta(coordFe(1), coordFe(2))*(invB'*dphij(q,:)');
                     end
                     Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Gjk + Pjk;
