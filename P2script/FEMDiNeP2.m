@@ -112,6 +112,22 @@ Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(Ne);
 bNeumannP2 = zeros(Ndof, 1);
+t = linspace(0,1,3);
+% scrivo le funzioni della base rispetto al lato (diventano funzioni
+% 1D)
+phiL1 = @(t) 2*(t-0.5)*(t-1);
+phiL2 = @(t) -4*t*(t-1);
+phiL3 = @(t) 2*t*(t-0.5);
+phiL = @(t) [phiL1(t), phiL2(t), phiL3(t)]';
+% sfrutto questa forma matriciale per andare a calcolare i vari
+% integrali : int(phii*phij)
+phiM = @(t) phiL(t)*phiL(t)';
+phiTensor = zeros(3,3,3);
+w = nodiQuadratura1D(3);
+for k=1:3
+    phiTensor(:,:,k) = w(k)*phiM(t(k));
+end
+phiMatrix = sum(phiTensor,3);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);
@@ -121,21 +137,6 @@ for e=1:nedgeBorders
     Ve = XY(indexE,:);
     Vm = XY(indexM,:);
     edgeLen = norm(Ve - Vb,2);
-    % scrivo le funzioni della base rispetto al lato (diventano funzioni
-    % 1D)
-    phi1 = @(t) 2*(t-0.5)*(t-1);
-    phi2 = @(t) -4*t*(t-1);
-    phi3 = @(t) 2*t*(t-0.5);
-    phi = @(t) [phi1(t), phi2(t), phi3(t)]';
-    % sfrutto questa forma matriciale per andare a calcolare i vari
-    % integrali : int(phii*phij)
-    phiM = @(t) phi(t)*phi(t)';
-    phiTensor = zeros(3,3,q);
-    w = nodiQuadratura1D(Nq);
-    for k=1:q
-        phiTensor(:,:,k) = w(k)*phiM(t(k));
-    end
-    phiMatrix = sum(phiTensor,3);
     gN = [gNe(Vb(1), Vb(2)) gNe(Vm(1), Vm(2)) gNe(Ve(1), Ve(2))]';
     finalIntegrals = edgeLen*(phiMatrix*gN);
     indexNode = [indexB, indexM, indexE];

@@ -27,7 +27,7 @@ gDi = @(x,y) 0;
 
 %% Soluzione problema discretizzato
 % Pk = 2;
-% uh = FEMDiNeP2Fra(geom, mu, beta, sigma, f, gDi, gNe);
+% uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
 % uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
 
 %% Plot soluzione approssimata
@@ -62,7 +62,7 @@ for l=1:Ktest
     Area = [geom.support.TInfo.Area].';
     maxArea = max(Area);
     areaTri(l) = maxArea;
-    uh = FEMDiNeP2Fra(geom, mu, beta, sigma, f, gDi, gNe);
+    uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
     [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
     clear geom
     errorL2vec(l) = errorL2;

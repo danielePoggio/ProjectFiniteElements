@@ -4,7 +4,7 @@ clc
 
 %% Eseguo Triangolazione sul Dominio
 area = 0.02;
-geom = Triangolator(area);
+geom = TriangolatorP2(area,2);
 close all
 
 %% Problema differenziale
@@ -32,7 +32,7 @@ u0 = @(x,y) u(0,x,y);
 deltat = 0.01;
 Nt = 5;
 T = Nt*deltat;
-uh = ParabolicP1(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
+uh = ParabolicP2(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
 
 %% Plot soluzione approssimata e esatta
 % tTable = tTableforP2plot(geom.elements.triangles);
