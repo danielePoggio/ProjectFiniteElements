@@ -9,7 +9,7 @@ NDi = -min(pivot);
 Nele = length(ele);
 A = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
-b = zeros(Ndof,1);
+bf = zeros(Ndof,1);
 for e=1:Nele
     p1 = XY(ele(e,1),:);
     p2 = XY(ele(e,2),:);
@@ -45,7 +45,7 @@ for e=1:Nele
                     Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Rjk;
                 end
             end
-            b(jj) = b(jj) + fbar*area/3;
+            bf(jj) = bf(jj) + fbar*area/3;
         end
     end
 end
@@ -63,7 +63,7 @@ end
 Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
-bNeumann = zeros(Ndof, 1);
+bNe = zeros(Ndof, 1);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);
@@ -73,28 +73,17 @@ for e=1:nedgeBorders
     edgeLen = norm(Ve - Vb,2);
     ii = geom.pivot.pivot(indexB);
     if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
+        bNe(ii) = bNe(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
     end
     ii = geom.pivot.pivot(indexE);
     if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
+        bNe(ii) = bNe(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
     end
-%     for i=1:2 
-%         j = pivot(edgeBorders(e,i,:,:));
-%         if j>0
-%             if i == 1 
-%                 bNeumann(j) = bNeumann(j) + edgeLen*(gNe(xb(1),xb(2))/3 + gNe(xe(1),xe(2))/6);
-%             end
-%             if i == 2
-%                 bNeumann(j) = bNeumann(j)+ edgeLen*(gNe(xb(1),xb(2))/6 + gNe(xe(1),xe(2))/3);
-%             end
-%         end
-%     end
 end
-b = b + bNeumann;
+b = bf + bNe - Ad*ud;
 
 % Risolviamo Sistema Lineare
-x = A\(b-Ad*ud);
+x = A\b;
 % Produciamo soluzione per output
 uh = zeros(Np,1);
 for j=1:Np

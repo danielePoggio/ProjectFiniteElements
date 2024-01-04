@@ -3,19 +3,17 @@ close all
 clc
 
 %% Eseguo Triangolazione sul Dominio
-% area = 0.002;
-% geom = Triangolator(area);
-% close all
+area = 0.02;
+geom = TriangolatorP2(area, 2);
+close all
 
 %% Problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y);
-gradu = @(x,y) 16*[y*(1-y)*(1 -2*x), x*(1-x)*(1 - 2*y)]';
-d2ux = @(x,y) [32*conj(y)*(conj(y) - 1), 16*(conj(x) - 1)*(2*conj(y) - 1) + 16*conj(x)*(2*conj(y) - 1)];
-d2uy = @(x,y) [16*(conj(y) - 1)*(2*conj(x) - 1) + 16*conj(y)*(2*conj(x) - 1),32*conj(x)*(conj(x) - 1)];
-Hu = @(x,y) [d2ux(x,y); d2uy(x,y)]';
+run("calculateDerivate.m")
+gradu = @(x,y) gradu(x,y)';
 d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
 mu = @(x,y) 1;
-beta = @(x,y) [3.0, 0.0];
+beta = @(x,y) [0.0, 0.0];
 sigma = @(x,y) 0.0;
 f = @(x,y) -mu(x,y)*d2u(x,y)+beta(x,y)*gradu(x,y)+sigma(x,y)*u(x,y);
 n = [0,-1]'; % direzione uscente da lato su y = 0
@@ -24,8 +22,8 @@ gDi = @(x,y) 0;
 
 
 %% Soluzione problema discretizzato
-% uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe);
-% Pk = 1;
+uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
+Pk = 2;
 % uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
 %% Plot soluzione approssimata
 % XY = geom.elements.coordinates;
@@ -37,17 +35,17 @@ gDi = @(x,y) 0;
 % % tTable = tTableforP2plot(ele);
 % trisurf(tTable, x, y, uh);
 % title("Grafico funzione approssimata")
-% 
+
 %% calcoliamo stima dell'errore
-% [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, 1);
-% 
+% [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
+
 % %% Andiamo a vedere come estrarre il valore minimo e massimo dell'area nella triangolazione
 % Area = [geom.support.TInfo.Area].';
 % areaMax = max(Area);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
-Pk = 1;
-Ktest = 4;
+Pk = 2;
+Ktest = 3;
 areaTri = zeros(Ktest,1);
 areaTri(1) = 0.01;
 errorL2vec = zeros(Ktest,1);
@@ -58,12 +56,12 @@ for l=1:Ktest
     else
         area = areaTri(l-1)/4;
     end
-    geom = Triangolator(area);
+    geom = TriangolatorP2(area,Pk);
     close all
     Area = [geom.support.TInfo.Area].';
     areaTri(l) = max(Area);
-    uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe);
-    [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
+    uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
+    [errorL2, errorH1] = errorFunctionNew(geom, u, gradu, uh, Pk);
     errorL2vec(l) = errorL2;
     errorH1vec(l) = errorH1;
 end

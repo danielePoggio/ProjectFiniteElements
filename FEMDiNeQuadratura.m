@@ -10,7 +10,7 @@ NDi = -min(pivot);
 Nele = length(ele);
 A = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
-b = zeros(Ndof,1);
+bf = zeros(Ndof,1);
 
 % definiamo i nodi di quadratura e i pesi associati
 run("nodes_weights.m")
@@ -78,7 +78,7 @@ for e=1:Nele
             end
             for q=1:Nq
                 coordFe = Fe(xhat(q),yhat(q));
-                b(jj) = b(jj) + 2*area_e*omega(q)*f(coordFe(1), coordFe(2))*phij(q);
+                bf(jj) = bf(jj) + 2*area_e*omega(q)*f(coordFe(1), coordFe(2))*phij(q);
             end
         end
     end
@@ -97,7 +97,7 @@ end
 Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
-bNeumann = zeros(length(b), 1);
+bNe = zeros(Ndof, 1);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);
@@ -107,14 +107,14 @@ for e=1:nedgeBorders
     edgeLen = norm(Ve - Vb,2);
     ii = geom.pivot.pivot(indexB);
     if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
+        bNe(ii) = bNe(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
     end
     ii = geom.pivot.pivot(indexE);
     if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
+        bNe(ii) = bNe(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
     end
 end
-b = b + bNeumann;
+b = bf + bNe-Ad*ud;
 
 % Risolviamo Sistema Lineare
 x = A\(b-Ad*ud);
