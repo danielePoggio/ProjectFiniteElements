@@ -1,6 +1,6 @@
 function uh = ParabolicP1(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0)
 %Assemblaggio FEM P1 -> supponiamo che nodi possono variare nello spazio ma
-%non nel tempo
+% %non nel tempo
 pivot = geom.pivot.pivot;
 indexDof = (pivot > 0);
 ele = geom.elements.triangles;

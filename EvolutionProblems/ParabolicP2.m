@@ -196,7 +196,10 @@ for n=1:Nt
     matrix = (B+0.5*deltat*A);
     termineNoto = (B-0.5*deltat*A)*uh(indexDof,n) - 0.5*deltat*(Bd*dtud1 + Ad*ud1 + Bd*dtud2 + Ad*ud2 - (b1+b2) - (bNeumann1+bNeumann2));
     % Risolviamo Sistema Lineare
-    x = matrix\termineNoto;
+    %x = matrix\termineNoto;
+    tol = 1.0e-03;
+    maxit = 2000;
+    x = lsqr(matrix,termineNoto,tol,maxit);
     % Produciamo soluzione per output
     for j=1:Np
         jj = pivot(j);
