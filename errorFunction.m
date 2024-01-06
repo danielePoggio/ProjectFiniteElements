@@ -15,13 +15,10 @@ if Pk == 1
     phi = @(x,y) [x, y, 1-x-y];
     Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
     phi_matrix = zeros(Nq,Nv);
-    dphix_matrix = zeros(Nq,Nv);
-    dphiy_matrix = zeros(Nq,Nv);
+    gradphi_matrix = zeros(2, Nv, Nq);
     for q=1:Nq
-        Jphi_temp = Jphi(xhat(q), yhat(q));
         phi_matrix(q,:) = phi(xhat(q), yhat(q));
-        dphix_matrix(q,:) = Jphi_temp(:,1)';
-        dphiy_matrix(q,:) = Jphi_temp(:,2)';
+        gradphi_matrix(:,:,q) = Jphi(xhat(q), yhat(q))';
     end
 elseif Pk == 2
     N1 = @(x,y) x;
@@ -33,28 +30,28 @@ elseif Pk == 2
     phi4 = @(x,y) 4*N3(x,y)*N1(x,y);
     phi5 = @(x,y) 4*N1(x,y)*N2(x,y);
     phi6 = @(x,y) 4*N2(x,y)*N3(x,y);
-    phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]';
+    phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)];
 
     Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y;
         0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
     phi_matrix = zeros(Nq,Nv);
-    dphix_matrix = zeros(Nq,Nv);
-    dphiy_matrix = zeros(Nq,Nv);
-    gradphiTensor = zeros(Nv,Nq,2,1);
+    gradphi_matrix = zeros(2, Nv, Nq);
     for q=1:Nq
-        Jphi_temp = Jphi(xhat(q), yhat(q));
         phi_matrix(q,:) = phi(xhat(q), yhat(q));
-        dphix_matrix(q,:) = Jphi_temp(:,1)';
-        dphiy_matrix(q,:) = Jphi_temp(:,2)';
-        gradphiTensor(:,q,:) = reshape(Jphi_temp, Nv,1,2);
-
+        gradphi_matrix(:,:,q) = Jphi(xhat(q), yhat(q))';
+    end
+end
+A = zeros(Nv,Nv);
+for k=1:Nv
+    for j=1:Nv
+        A(k,j) = A(k,j) + omega*(phi_matrix(:,k).*phi_matrix(:,j));
     end
 end
 errorL2 = 0;
 errorH1 = 0;
 for e=1:Nele
     % Estraggo indici globali elemento e
-    indexVertexElement = geom.elements.triangles(e,:); % la considero Ge(k^)
+    indexVertexElement = ele(e,:); % la considero Ge(k^)
     % Costruisco la funzione Fe(x^,y^) = c + B*(x^,y^)'
     p1 = XY(ele(e,1),:);
     p2 = XY(ele(e,2),:);
@@ -64,22 +61,43 @@ for e=1:Nele
     invB = (1/det(B))*[B(2,2), -B(1,2); -B(2,1), B(1,1)];
     c = p3';
     Fe = @(x,y) c + B*[x,y]';
-    integralTriangle = 0;
-    temp = 0;
-    for q=1:Nq
-        approx_uh = 0;
-        approx_grad = zeros(2,1);
-        for k=1:Nv % calcolo le approssimazioni di uh e graduh
-            approx_uh = approx_uh + uh(indexVertexElement(k))*phi_matrix(q,k);
-            approx_grad = approx_grad + uh(indexVertexElement(k))*[dphix_matrix(q,k), dphiy_matrix(q,k)]';
-        end
-        coordFe = Fe(xhat(q),yhat(q));
-        integralTriangle = integralTriangle + omega(q)*2*area_e*(u(coordFe(1), coordFe(2)) - approx_uh)^2;
-        vec = (gradu(coordFe(1), coordFe(2)) - invB'*approx_grad);
-        temp = temp + 2*omega(q)*area_e*(vec'*vec);
+    % calcoliamo valori di u e gradu nei gradi di libertà del triangolo
+    uLocal = zeros(Nv,1);
+    graduLocal = zeros(2,Nv);
+    for k=1:Nv
+        coord = XY(ele(e,k),:); 
+        uLocal(k) = uh(ele(e,k));
+        graduLocal(:,k) = gradu(coord(1),coord(2));
     end
-    errorL2 = errorL2 + integralTriangle;
-    errorH1 = errorH1 + temp;
+    % Calcoliamo errore norma L2 su elemento E
+    uPhi = zeros(Nv,1);
+    gradUgradPhi = zeros(Nv,1);
+    gradPhigradU = zeros(Nv,1);
+    gradgrad = zeros(Nv,Nv);
+    u_ = zeros(Nq,1); % valore di u nei nodi di interpolazione
+    gradu_ = zeros(2,Nq);
+    uSquared = zeros(Nq,1);
+    graduSquared = zeros(Nq,1);
+    for q=1:Nq
+        coordFe = Fe(xhat(q),yhat(q));
+        uq = u(coordFe(1), coordFe(2));
+        graduq = gradu(coordFe(1), coordFe(2));
+        uSquared(q) = uq*uq;
+        graduSquared(q) = graduq'*graduq;
+        u_(q) = uq;
+        gradu_(:, q) = graduq;
+    end
+    normauSquared = omega*uSquared;
+    normaGraduSquared = omega*graduSquared;
+    for k=1:Nv
+        uPhi(k) = omega*(u_.*phi_matrix(:,k));
+        gradUgradPhi(k) = sum(gradu_.*(invB'*reshape(gradphi_matrix(:,k,:), 2,7)),1)*omega' + sum(reshape(gradphi_matrix(:,k,:), 2,7).*(invB*gradu_),1)*omega';
+        for j = 1:Nv
+            gradgrad(k,j) = sum(reshape(gradphi_matrix(:,k,:), 2,7).*(invB*(invB'*reshape(gradphi_matrix(:,j,:), 2,7))),1)*omega';
+        end
+    end
+    errorL2 = errorL2 + 2*area_e*(normauSquared - 2*uLocal'*uPhi + uLocal'*A*uLocal);
+    errorH1 = errorH1 + 2*area_e*(normaGraduSquared - uLocal'*(gradUgradPhi) + uLocal'*gradgrad*uLocal);
 end
 errorL2 = sqrt(errorL2);
 errorH1 = sqrt(errorH1);

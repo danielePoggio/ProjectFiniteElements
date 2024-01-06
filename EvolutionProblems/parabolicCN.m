@@ -1,21 +1,22 @@
-function uh = ParabolicP1new(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
-%IMPLICITEULER Summary of this function goes here
+function uh = parabolicCN(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0)
+%parabolicCN Summary of this function goes here
 %   Detailed explanation goes here
 pivot = geom.pivot.pivot;
 indexDof = (pivot > 0);
+indexDi = (pivot < 0);
 ele = geom.elements.triangles;
 XY = geom.elements.coordinates;
 Np = length(XY);
-Ndof = max(pivot);
-NDi = -min(pivot);
-Nele = length(ele);
+Ndof = sum(indexDof);
+NDi = sum(indexDi);
+dimele = size(ele);
+Nele = dimele(1);
 A = zeros(Ndof,Ndof);
 B = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
 Bd = zeros(Ndof, NDi);
 uh = zeros(Np, Nt+1);
+% completo la prima colonna di uh
 for i=1:Np
     V = XY(i,:);
     uh(i,1) = u0(V(1),V(2));
@@ -130,7 +131,7 @@ for n=1:Nt+1
     end
 end
 
-%% Calcoliamo termine noto
+% Calcoliamo termine noto
 F = zeros(Ndof,Nt+1);
 for n=1:Nt+1
     for e=1:Nele
@@ -144,7 +145,7 @@ for n=1:Nt+1
         for j=1:3
             jj = pivot(ele(e,j));
             if jj > 0
-
+                phij = phi_matrix(:, j);
                 for q=1:Nq
                     coordFe = Fe(xhat(q),yhat(q));
                     F(jj,n) = F(jj,n) + 2*area_e*omega(q)*f((n-1)*deltat, coordFe(1), coordFe(2))*phij(q);
@@ -153,17 +154,18 @@ for n=1:Nt+1
         end
     end
 end
+
 %% Risolviamo i sistemi lineari per ogni istante temporale
 for n=2:Nt+1
     matrix = B + 0.5*deltat*A;
-    termineNoto = (B-0.5*deltat*A)*uh(indexDof,n-1) - 0.5*deltat*Bd*(dtud(:,n)+dtud(:,n-1)) - 0.5*deltat*Ad*(ud(:,n)+ud(:,n-1)) + 0.5*deltat*(F(:,n)+F(:,n-1));
+    termineNoto = (B-0.5*deltat*A)*uh(indexDof,n-1) - 0.5*deltat*Bd*(dtud(:,n)+dtud(:,n-1)) - 0.5*deltat*Ad*(ud(:,n)+ud(:,n-1)) + 0.5*deltat*(F(:,n)+F(:,n-1)) + 0.5*deltat*(bNe(:,n)+bNe(:,n-1));
     x = matrix\termineNoto;
     for j=1:Np
         jj = pivot(j);
         if jj > 0
             uh(j,n) = x(jj)*(jj>0) + 0;
         elseif jj < 0
-            uh(j,n) = gDi(n*deltat, XY(j,1), XY(j,2));
+            uh(j,n) = gDi((n-1)*deltat, XY(j,1), XY(j,2));
         end
     end
 end

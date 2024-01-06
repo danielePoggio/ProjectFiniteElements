@@ -128,7 +128,7 @@ for n=1:Nt+1
     end
 end
 
-%% Calcoliamo termine noto
+% Calcoliamo termine noto
 b = zeros(Ndof,Nt+1);
 for n=1:Nt+1
     for e=1:Nele
@@ -142,6 +142,7 @@ for n=1:Nt+1
         for j=1:3
             jj = pivot(ele(e,j));
             if jj > 0
+                phij = phi_matrix(:, j);
                 for q=1:Nq
                     coordFe = Fe(xhat(q),yhat(q));
                     b(jj,n) = b(jj,n) + 2*area_e*omega(q)*f((n-1)*deltat, coordFe(1), coordFe(2))*phij(q);
@@ -153,14 +154,14 @@ end
 %% Risolviamo i sistemi lineari per ogni istante temporale
 for n=2:Nt+1
     matrix = B + deltat*A;
-    termineNoto = B*uh(indexDof,n-1) + deltat*(-Bd*dtud(:,n) - Ad*ud(:,n) + b(:,n));
+    termineNoto = B*uh(indexDof,n-1) + deltat*(-Bd*dtud(:,n) - Ad*ud(:,n) + b(:,n) + bNe(:,n));
     x = matrix\termineNoto;
     for j=1:Np
         jj = pivot(j);
         if jj > 0
             uh(j,n) = x(jj)*(jj>0) + 0;
         elseif jj < 0
-            uh(j,n) = gDi(n*deltat, XY(j,1), XY(j,2));
+            uh(j,n) = gDi((n-1)*deltat, XY(j,1), XY(j,2));
         end
     end
 end
