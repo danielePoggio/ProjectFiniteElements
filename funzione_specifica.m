@@ -1,11 +1,10 @@
-function valore = funzione_specifica(x, y)
-    % Calcola il gradiente lungo la diagonale y=x
-    gradiente_diagonale = 50;
+function y = funzione_specifica(x)
+    % Funzione monotona crescente nell'intervallo [0, 1]
+    % con derivata prima massima in x = 0.5
 
-    % Calcola la distanza dalla diagonale
-    distanza_diagonale = abs(y - x);
-
-    % Calcola la funzione
-    valore = exp(-gradiente_diagonale * (distanza_diagonale).^2);
+   % Definizione della funzione simile ad una sigmoide
+    a = 10;  % Parametro di regolazione della "steepness"
+    y = 1 ./ (1 + exp(-a * (x - 0.5)));
 end
+
 

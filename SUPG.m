@@ -1,4 +1,4 @@
-function uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe)
+function uh = SUPG(geom, mu, beta, f, gDi, gNe, Pk)
 %SUPG for mu costante
 pivot = geom.pivot.pivot;
 ele = geom.elements.triangles;
@@ -75,7 +75,7 @@ for e=1:Nele
     normBetaQuad = 0;
     for q=1:Nq
         coordFe = Fe(xhat(q),yhat(q));
-        normBetaQuad = normBetaQuad + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*beta(coordFe(1), coordFe(2))';
+        normBetaQuad = normBetaQuad + 2*omega(q)*beta(coordFe(1), coordFe(2))*beta(coordFe(1), coordFe(2))';
     end
     normaBeta = sqrt(normBetaQuad);
     Pe = mk*normaBeta*sqrt(area_e)*0.5/mu(coordFe(1), coordFe(2));
