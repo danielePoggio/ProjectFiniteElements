@@ -84,6 +84,7 @@ for i=1:Ndof
     for j=1:Ndof
         if j ~= i
             A(i,i) = A(i,i) + A(i,j);
+            A(i,j) = 0;
         end
     end
 end

@@ -15,3 +15,6 @@ for i=1:10
 end
 
 phiP3 = @(x,y) weights*base(x,y);
+
+
+run("")
