@@ -1,0 +1,47 @@
+% Errore in L2 per la soluzione approssimata con i P2
+
+function [E0_P2] = eps_L2_P2(u, U, xhat, yhat, omega, geom)
+
+% creo la matrice delle funzioni di base calcolate nei nodi di quadratura
+what = ones(length(xhat), 1) - xhat' - yhat'; % N_3
+Phi_hat_matrix = zeros(length(xhat),6); % le funzioni di base per i P2 sono 6
+Phi_hat_matrix(:,1) = 2*xhat'.*(xhat'-1/2*ones(length(xhat), 1));
+Phi_hat_matrix(:,2) = 2*yhat'.*(yhat'-1/2*ones(length(xhat), 1));
+Phi_hat_matrix(:,3) = 2*what.*(what-1/2*ones(length(xhat), 1));
+Phi_hat_matrix(:,4) = 4*xhat'.*what;
+Phi_hat_matrix(:,5) = 4*xhat'.*yhat';
+Phi_hat_matrix(:,6) = 4*yhat'.*what;
+
+E0_P2 = 0;
+
+for e = 1:geom.nelements.nTriangles
+    
+    % richiamo gli elementi della matrice B, che interverrà nella
+    % trasformazione affine F_E
+    Dx(1) = geom.elements.coordinates(geom.elements.triangles(e,3),1) - geom.elements.coordinates(geom.elements.triangles(e,2),1);
+    Dx(2) = geom.elements.coordinates(geom.elements.triangles(e,1),1) - geom.elements.coordinates(geom.elements.triangles(e,3),1);
+    Dy(1) = geom.elements.coordinates(geom.elements.triangles(e,2),2) - geom.elements.coordinates(geom.elements.triangles(e,3),2);
+    Dy(2) = geom.elements.coordinates(geom.elements.triangles(e,3),2) - geom.elements.coordinates(geom.elements.triangles(e,1),2);
+    
+    Area = geom.support.TInfo(e).Area;
+    a_3 = geom.elements.coordinates(geom.elements.triangles(e,3),:)';
+    B = [Dx(2), -Dx(1);
+        -Dy(2), Dy(1)];
+    
+    %%%%%
+    % soluzione ristretta al triangolo --> vettore contenente i valori (della soluzione approssimata) nei 3
+    % vertici del triangolo. A differenza dei P1, qui ho 6 gdl--> 6 valori
+    % nei nodi
+    U_T = zeros(6,1);
+    for i = 1:6
+        U_T(i) = U(geom.elements.triangles(e,i));
+    end
+    %%%%%
+
+    for q = 1:length(xhat)
+        F_T = a_3 + B*[xhat(q), yhat(q)]'; % trasformazione affine
+        E0_P2 = E0_P2 + omega(q)*2*Area*(u(F_T(1), F_T(2))-Phi_hat_matrix(q,:)*U_T)^2;
+    end
+end
+
+end

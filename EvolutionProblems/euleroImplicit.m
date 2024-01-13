@@ -25,7 +25,7 @@ for i=1:Np
 end
 
 % definiamo i nodi di quadratura e i pesi associati
-run("nodes_weights.m")
+run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\nodes_weights.m")
 clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 
@@ -157,15 +157,15 @@ for n=1:Nt+1
 end
 %% Risolviamo i sistemi lineari per ogni istante temporale
 for n=2:Nt+1
-    matrix = B + 0.5*deltat*A;
-    termineNoto = (B-0.5*deltat*A)*uh(indexDof,n-1) - 0.5*deltat*Bd*(dtud(:,n)+dtud(:,n-1)) - 0.5*deltat*Ad*(ud(:,n)+ud(:,n-1)) + 0.5*deltat*(F(:,n)+F(:,n-1)) + 0.5*deltat*(bNe(:,n)+bNe(:,n-1));
+    matrix = B + deltat*A;
+    termineNoto = B*uh(indexDof,n-1) - deltat*Bd*(dtud(:,n)) - deltat*Ad*(ud(:,n)) + deltat*(F(:,n)) + deltat*(bNe(:,n));
     x = matrix\termineNoto;
     for j=1:Np
         jj = pivot(j);
         if jj > 0
             uh(j,n) = x(jj)*(jj>0) + 0;
         elseif jj < 0
-            uh(j,n) = gDi((n-1)*deltat, XY(j,1), XY(j,2));
+            uh(j,n) = gDi((n)*deltat, XY(j,1), XY(j,2));
         end
     end
 end

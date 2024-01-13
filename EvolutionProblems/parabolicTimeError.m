@@ -4,7 +4,7 @@ clc
 
 %% Problema differenziale
 u = @(t,x,y) x+y+sin(t);
-run("calculateDerivateTemporal.m")
+run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivateTemporal.m")
 d2u = @(t,x,y) [1,0]*Hu(t,x,y)*[1,0]'+ [0,1]*Hu(t,x,y)*[0,1]';
 rho = @(x,y) 1.0;
 mu = @(x,y) 1.0;
@@ -19,16 +19,15 @@ u0 = @(x,y) u(0,x,y);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
 % TEST SUL PASSO TEMPORALE
+
 Pk = 1;
-
-
-%calcoliamo ora errore rispetto al problema parabolico
 area = 0.002;
 geom = Triangolator(area);
 close all
 Area = [geom.support.TInfo.Area].';
 h = sqrt(max(Area));
-% plot soluzione finale
+
+%% Plot soluzione finale
 % XY = geom.elements.coordinates;
 % x = XY(:,1);
 % y = XY(:,2);
@@ -42,7 +41,7 @@ h = sqrt(max(Area));
 % trisurf(tTable, x, y, soluzioneEsatta);
 % title("Grafico soluzione esatta")
 
-% Eseguo Test
+%%  Eseguo Test
 XY = geom.elements.coordinates;
 x = XY(:,1);
 y = XY(:,2);
@@ -70,9 +69,9 @@ for l=1:Ktest
         soluzioneEsatta(i) = u(T,x(i), y(i));
     end
     numberStep(l) = Nt;
-    uh = parabolicCN(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
+    uh = euleroImplicit(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
     uhT = uh(:,Nt+1);
-    [errorL2, errorH1] = errorFunctionOld(geom, uT, graduT, uhT, Pk);
+    [errorL2, errorH1] = error(uT, graduT, uhT, geom, Pk);
     errorL2vec(l) = errorL2;
     errorH1vec(l) = errorH1;
     errorLInfvec(l) = norm(soluzioneEsatta - uhT, 'inf');

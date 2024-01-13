@@ -1,4 +1,4 @@
-function uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe)
+function [uh, condA] = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe)
 %Assemblaggio FEM Dirichlet non omogeneo, calcolo coeff con nodi di
 %quadratura invece che approssimare con il baricentro
 pivot = geom.pivot.pivot;
@@ -13,7 +13,7 @@ Ad = zeros(Ndof, NDi);
 b = zeros(Ndof,1);
 
 % ricaviamo nodi di quadratura
-run("nodes_weights.m")
+run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\nodes_weights.m")
 % estraiamo funzioni P2
 Nv = 6;
 N1 = @(x,y) x;
@@ -150,6 +150,7 @@ for e=1:nedgeBorders
 end
 b = b + bNeumannP2;
 
+condA = cond(A);
 % Risolviamo Sistema Lineare
 x = A\(b-Ad*ud);
 % Produciamo soluzione per output

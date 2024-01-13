@@ -6,7 +6,7 @@ clc
 % f = @(x,a) 1./(1 + exp(-a*(x-0.5)));
 % u = @(x,y) f(x+y,10);
 u = @(x,y) 16*x*(1-x)*y*(1-y);
-run("calculateDerivate.m")
+run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
 gradu = @(x,y) gradu(x,y)';
 d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
 mu = @(x,y) 0.001;

@@ -3,4 +3,9 @@ nodes_weights.m
 P2script/P2.m
 P2script/nodes_weights.m
 P2script/TriangolatorP2.m
+TriangolatorP1Di.m
+TriangolatorP2Di.m
+TriangolatorP1Ne.m
+TriangolatorP2Ne.m
+Overlapping Methods/TriangolatorDomainVertex.m
 *.asv

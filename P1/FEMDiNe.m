@@ -1,4 +1,4 @@
-function uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe)
+function [uh, condA] = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe)
 %Assemblaggio FEM Dirichlet non omogeneo
 pivot = geom.pivot.pivot;
 ele = geom.elements.triangles;
@@ -9,7 +9,7 @@ NDi = -min(pivot);
 Nele = length(ele);
 A = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
-bf = zeros(Ndof,1);
+b = zeros(Ndof,1);
 for e=1:Nele
     p1 = XY(ele(e,1),:);
     p2 = XY(ele(e,2),:);
@@ -35,17 +35,17 @@ for e=1:Nele
                 kk = pivot(ele(e,k));
                 if kk > 0 % assemblaggio classico di A
                     Djk = (0.25*mubar/area)*(dy(k)*dy(j) + dx(k)*dx(j));
-                    Cjk = (1/6)*(betabar(1)*dy(k) + betabar(2)*dx(j));
+                    Cjk = (1/6)*(betabar(1)*dy(k) + betabar(2)*dx(k));
                     Rjk = (1/12)*sigmabar*area*(1 + (j==k));
                     A(jj,kk) = A(jj,kk) + Djk + Cjk + Rjk;
                 elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
                     Djk = (0.25*mubar/area)*(dy(k)*dy(j) + dx(k)*dx(j));
-                    Cjk = (1/6)*(betabar(1)*dy(k) + betabar(2)*dx(j));
+                    Cjk = (1/6)*(betabar(1)*dy(k) + betabar(2)*dx(k));
                     Rjk = (1/12)*sigmabar*area*(1 + (j==k));
                     Ad(jj,-kk) = Ad(jj,-kk) + Djk + Cjk + Rjk;
                 end
             end
-            bf(jj) = bf(jj) + fbar*area/3;
+            b(jj) = b(jj) + fbar*area/3;
         end
     end
 end
@@ -63,7 +63,6 @@ end
 Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
-bNe = zeros(Ndof, 1);
 for e=1:nedgeBorders
     edge = Ne(e);
     indexB = geom.elements.borders(edge,1);
@@ -73,25 +72,86 @@ for e=1:nedgeBorders
     edgeLen = norm(Ve - Vb,2);
     ii = geom.pivot.pivot(indexB);
     if ii > 0
-        bNe(ii) = bNe(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
+        b(ii) = b(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
     end
     ii = geom.pivot.pivot(indexE);
     if ii > 0
-        bNe(ii) = bNe(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
+        b(ii) = b(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
     end
 end
-b = bf + bNe - Ad*ud;
+
+% % Imponiamo condizioni di Neuman
+% Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
+% edgeBorders = geom.elements.borders(Ne,:,:,:);
+% nedgeBorders = length(Ne);
+% bNeumann = zeros(Ndof, 1);
+% t = linspace(0,1,3);
+% % scrivo le funzioni della base rispetto al lato (diventano funzioni
+% % 1D)
+% phiL1 = @(t) (t-1);
+% phiL2 = @(t) t;
+% phiL = @(t) [phiL1(t), phiL2(t)]';
+% % sfrutto questa forma matriciale per andare a calcolare i vari
+% % integrali : int(phii*phij)
+% phiM = @(t) phiL(t)*phiL(t)';
+% phiTensor = zeros(2,2,3);
+% w = nodiQuadratura1D(3);
+% for k=1:3
+%     phiTensor(:,:,k) = w(k)*phiM(t(k));
+% end
+% phiMatrix = sum(phiTensor,3);
+% for e=1:nedgeBorders
+%     edge = Ne(e);
+%     indexB = geom.elements.borders(edge,1);
+%     indexE = geom.elements.borders(edge,2);
+%     Vb = XY(indexB,:);
+%     Ve = XY(indexE,:);
+%     edgeLen = norm(Ve - Vb,2);
+%     gN = [gNe(Vb(1), Vb(2)) gNe(Ve(1), Ve(2))]';
+%     finalIntegrals = edgeLen*(phiMatrix*gN);
+%     indexNode = [indexB, indexE];
+%     for i=1:2
+%         idx = indexNode(i);
+%         ii = geom.pivot.pivot(idx);
+%         if ii > 0
+%             bNeumann(ii) = bNeumann(ii) + finalIntegrals(i);
+%         end
+%     end
+% end
+
+% Imponiamo condizioni di Neuman
+% Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
+% edgeBorders = geom.elements.borders(Ne,:,:,:);
+% nedgeBorders = length(edgeBorders);
+% for e = 1 : nedgeBorders % # nodi di Neumann
+%     for q = 1 : 2
+%         j = geom.pivot.pivot(geom.elements.borders(geom.pivot.Ne(e,1),q));
+%         if j > 0
+%             if q==1
+%                 x_b = XY(geom.pivot.pivot(geom.elements.borders(geom.pivot.Ne(e,1),1)),:);
+%                 x_e = XY(geom.pivot.pivot(geom.elements.borders(geom.pivot.Ne(e,1),2)),:);
+%                 t = norm(x_e-x_b);
+%                 bf(j) = bf(j) + ((2*gNe(x_b(1),x_b(2))+gNe(x_e(1),x_e(2)))/6)*t;
+%             else
+%                 bf(j) = bf(j) + ((gNe(x_b(1),x_b(2))+2*gNe(x_e(1),x_e(2)))/6)*t;
+%             end
+%         end
+% 
+%     end
+% end
+
 
 % Risolviamo Sistema Lineare
-x = A\b;
+condA = cond(A);
+x = A\(b - Ad*ud);
 % Produciamo soluzione per output
 uh = zeros(Np,1);
-for j=1:Np
+for j=1:geom.nelements.nVertexes
     jj = pivot(j);
-    if jj > 0
-        uh(j) = x(jj)*(jj>0) + 0;
+    if geom.pivot.pivot(j) > 0
+        uh(j) = x(geom.pivot.pivot(j));
     elseif jj < 0
-        uh(j) = gDi(XY(j,1), XY(j,2));
+        uh(j) = ud(-geom.pivot.pivot(j));
     end
 end
 end

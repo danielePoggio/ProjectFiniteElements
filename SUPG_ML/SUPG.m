@@ -15,7 +15,7 @@ Ad = zeros(Ndof, NDi);
 b = zeros(Ndof,1);
 
 % definiamo i nodi di quadratura e i pesi associati
-run("nodes_weights.m")
+run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\nodes_weights.m")
 clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 

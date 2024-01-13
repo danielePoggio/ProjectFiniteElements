@@ -1,0 +1,60 @@
+function [E1_P2] = eps_H1_P2(u, U, xhat, yhat, omega, geom)
+
+what = ones(length(xhat), 1) - xhat' - yhat'; % N_3
+
+Dx_Phi_hat_matrix = zeros(length(xhat),6);
+Dx_Phi_hat_matrix(:,1) = 2*(xhat'-1/2*ones(length(xhat), 1)) + 2*xhat';
+Dx_Phi_hat_matrix(:,2) = zeros(length(xhat), 1);
+Dx_Phi_hat_matrix(:,3) = -2*(what-1/2*ones(length(xhat), 1)) - 2*what;
+Dx_Phi_hat_matrix(:,4) = 4*what-4*xhat';
+Dx_Phi_hat_matrix(:,5) = 4*yhat';
+Dx_Phi_hat_matrix(:,6) = -4*yhat';
+
+Dy_Phi_hat_matrix = zeros(length(xhat),6);
+Dy_Phi_hat_matrix(:,1) = zeros(length(xhat), 1);
+Dy_Phi_hat_matrix(:,2) = 2*(yhat'-1/2*ones(length(xhat), 1)) + 2*yhat';
+Dy_Phi_hat_matrix(:,3) = -2*(what-1/2*ones(length(xhat), 1)) - 2*what;
+Dy_Phi_hat_matrix(:,4) = -4*xhat';
+Dy_Phi_hat_matrix(:,5) = 4*xhat';
+Dy_Phi_hat_matrix(:,6) = 4*what-4*yhat';
+
+% Dx_u = @(x,y) 16*(1-x)*y*(1-y) - 16*x*y*(1-y) + 1; % per la soluzione esatta con Di. non omo. + Neumann
+% Dy_u = @(x,y) 16*x*(1-x)*(1-y) - 16*x*(1-x)*y + 1; % per la soluzione esatta con Di. non omo. + Neumann
+
+Dx_u = @(x,y) 16*(1-x)*y*(1-y) - 16*x*y*(1-y); %per la soluzione esattacon Di. omogeneo
+Dy_u = @(x,y) 16*x*(1-x)*(1-y) - 16*x*(1-x)*y; %per la soluzione esattacon Di. omogeneo
+
+E1_P2 = 0;
+
+for e = 1:geom.nelements.nTriangles
+    
+    % richiamo gli elementi della matrice B, che interverrà nella
+    % trasformazione affine F_E
+    Dx(1) = geom.elements.coordinates(geom.elements.triangles(e,3),1) - geom.elements.coordinates(geom.elements.triangles(e,2),1);
+    Dx(2) = geom.elements.coordinates(geom.elements.triangles(e,1),1) - geom.elements.coordinates(geom.elements.triangles(e,3),1);
+    Dy(1) = geom.elements.coordinates(geom.elements.triangles(e,2),2) - geom.elements.coordinates(geom.elements.triangles(e,3),2);
+    Dy(2) = geom.elements.coordinates(geom.elements.triangles(e,3),2) - geom.elements.coordinates(geom.elements.triangles(e,1),2);
+    
+    Area = geom.support.TInfo(e).Area;
+    a_3 = geom.elements.coordinates(geom.elements.triangles(e,3),:)';
+    B = [Dx(2), -Dx(1); 
+        -Dy(2), Dy(1)];
+    B_mt = (1/(2*Area))*[Dy(1), Dy(2); Dx(1), Dx(2)];
+    
+    %%%%%
+    % soluzione ristretta al triangolo --> vettore contenente i valori (della soluzione approssimata) nei 3
+    % vertici del triangolo
+    U_T = zeros(6,1);
+    for i = 1:6
+        U_T(i) = U(geom.elements.triangles(e,i));
+    end
+    %%%%%
+
+    for q = 1:length(xhat)
+        F_T = a_3 + B*[xhat(q), yhat(q)]'; % trasformazione affine
+        E1_P2 = E1_P2 + omega(q)*2*Area*( [Dx_u(F_T(1), F_T(2)); Dy_u(F_T(1), F_T(2))]-B_mt*[Dx_Phi_hat_matrix(q,:)*U_T; Dy_Phi_hat_matrix(q,:)*U_T] )'*( [Dx_u(F_T(1), F_T(2)); Dy_u(F_T(1), F_T(2))]-B_mt*[Dx_Phi_hat_matrix(q,:)*U_T; Dy_Phi_hat_matrix(q,:)*U_T] );
+    end
+end
+
+
+end

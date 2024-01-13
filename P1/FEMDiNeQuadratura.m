@@ -1,4 +1,4 @@
-function uh = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe)
+function [uh, condA] = FEMDiNeQuadratura(geom, mu, beta, sigma, f, gDi, gNe)
 %Assemblaggio FEM Dirichlet non omogeneo, calcolo coeff con nodi di
 %quadratura invece che approssimare con il baricentro
 pivot = geom.pivot.pivot;
@@ -13,7 +13,7 @@ Ad = zeros(Ndof, NDi);
 bf = zeros(Ndof,1);
 
 % definiamo i nodi di quadratura e i pesi associati
-run("nodes_weights.m")
+run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\nodes_weights.m")
 clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 
@@ -54,9 +54,10 @@ for e=1:Nele
                     Cjk = 0;
                     Rjk = 0;
                     for q=1:Nq
-                        Djk = Djk + 2*area_e*omega(q)*mu(Fe(xhat(q),yhat(q)))*dphik(q,:)*prodinvBinvbt*dphij(q,:)';
-                        Cjk = Cjk + 2*area_e*omega(q)*beta(Fe(xhat(q),yhat(q)))*invB'*dphik(q,:)'*phij(q);
-                        Rjk = Rjk + 2*area_e*omega(q)*sigma(Fe(xhat(q),yhat(q)))*phik(q)*phij(q);
+                        coordFe = Fe(xhat(q),yhat(q));
+                        Djk = Djk + 2*area_e*omega(q)*mu(coordFe(1), coordFe(2))*dphik(q,:)*prodinvBinvbt*dphij(q,:)';
+                        Cjk = Cjk + 2*area_e*omega(q)*beta(coordFe(1), coordFe(2))*invB'*dphik(q,:)'*phij(q);
+                        Rjk = Rjk + 2*area_e*omega(q)*sigma(coordFe(1), coordFe(2))*phik(q)*phij(q);
                     end
                     A(jj,kk) = A(jj,kk) + Djk + Cjk + Rjk;
                 elseif kk < 0 % assemblaggio matrice Ad legata a Dirichlet
@@ -114,8 +115,9 @@ for e=1:nedgeBorders
         bNe(ii) = bNe(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
     end
 end
-b = bf + bNe-Ad*ud;
+b = bf + bNe;
 
+condA = cond(A);
 % Risolviamo Sistema Lineare
 x = A\(b-Ad*ud);
 % Produciamo soluzione per output
