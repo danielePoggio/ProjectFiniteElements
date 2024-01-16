@@ -3,14 +3,13 @@ close all
 clc
 
 %% Problema differenziale
-% f = @(x,a) 1./(1 + exp(-a*(x-0.5)));
-% u = @(x,y) f(x+y,10);
+% g = @(x,a) 1./(1 + exp(-a*(x-0.5)));
+% u = @(x,y) g(x^2+y^2,10);
 u = @(x,y) 16*x*(1-x)*y*(1-y);
 run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
-gradu = @(x,y) gradu(x,y)';
 d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
-mu = @(x,y) 0.001;
-beta = @(x,y) [50.0, 0.0];
+mu = @(x,y) 1.0e-5;
+beta = @(x,y) [1,1];
 sigma = @(x,y) 0.0;
 f = @(x,y) -mu(x,y)*d2u(x,y)+beta(x,y)*gradu(x,y)+sigma(x,y)*u(x,y);
 n = [0,-1]'; % direzione uscente da lato su y = 0
@@ -43,21 +42,21 @@ gDi = @(x,y) u(x,y);
 % trisurf(tTable, x, y, uh);
 % title("Grafico funzione approssimata")
 % 
-% %% Plot soluzione esatta
-% x = linspace(0, 1, 100);
-% y = linspace(0, 1, 100);
-% [X, Y] = meshgrid(x, y);
-% Z = u(X,Y);
-% 
+%% Plot soluzione esatta
+% z = zeros(length(x),1);
+% for i = 1:length(x)
+%     z(i) = u(x(i),y(i));
+% end
+% % 
 % figure(2);
-% surf(X, Y, Z, 'EdgeColor', 'none');
+% trisurf(tTable, x,y,z);
 % xlabel('X');
 % ylabel('Y');
 % zlabel('u(x,y)');
 % title("Soluzione esatta u(x,y)")
 
 %% Valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
-Pk = 1;
+Pk = 2;
 Ktest = 3;
 areaTri = zeros(Ktest,1);
 areaTri(1) = 0.01;
@@ -70,7 +69,7 @@ for l=1:Ktest
     else
         area = areaTri(l-1)/4;
     end
-    geom = TriangolatorP2(area,Pk);
+    geom = TriangolatorP2Di(area);
     close all
     Area = [geom.support.TInfo.Area].';
     areaTri(l) = max(Area);
@@ -79,7 +78,7 @@ for l=1:Ktest
     Pe = mk*(norm(beta(0,0),2)*h)/(2*mu(0,0));
     Pevec(l) = Pe;
     uh = SUPG(geom, mu, beta, f, gDi, gNe, Pk);
-    uh = FEMDiNe(geom, mu, beta, sigma, f, gDi, gNe);
+%     uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
     [errorL2, errorH1] = errorFunctionOld(geom, u, gradu, uh, Pk);
     errorL2vec(l) = errorL2;
     errorH1vec(l) = errorH1;

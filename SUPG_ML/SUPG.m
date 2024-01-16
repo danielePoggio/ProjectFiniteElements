@@ -40,7 +40,7 @@ elseif Pk == 2
     phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]';
     Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y;
         0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
-    Hphi = zeros(2,2,6);
+    Hphi = zeros(2,2,Nv);
     Hphi(:,:,1) = [4, 0; 0,0];
     Hphi(:,:,2) = [0, 0; 0,4];
     Hphi(:,:,3) = [4, 4; 4, 4];
@@ -93,8 +93,9 @@ for e=1:Nele
                     phij = phi_matrix(:, j);
                     dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
                     dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
-                    Hphik = invB'*Hphi(:,:,k)*invB;
-                    d2phik = Hphik(1,1) + Hphik(2,2);
+                    Hphik = Hphi(:,:,k);
+                    HphikHat =  invB'*(Hphik*invB);
+                    d2phik = HphikHat(1,1) + HphikHat(2,2);
                     Djk = 0;
                     Gjk = 0;
                     Cjk = 0;
