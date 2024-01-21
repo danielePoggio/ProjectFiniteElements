@@ -18,9 +18,9 @@ u0 = @(x,y) u(0,x,y);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
 % TEST SUL PASSO TEMPORALE
-Pk = 1;
+Pk = 2;
 area = 0.01;
-geom = TriangolatorP1Di(area);
+geom = TriangolatorP2Ne(area);
 close all
 Area = [geom.support.TInfo.Area].';
 h = sqrt(max(Area));
@@ -67,7 +67,7 @@ for l=1:Ktest
         soluzioneEsatta(i) = u(T,x(i), y(i));
     end
     numberStep(l) = Nt;
-    uh = crankNicolson(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
+    [uh, condB] = crankNicolsonP2(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
     uhT = uh(:,Nt+1);
     [errorL2, errorH1] = errorFunctionOld(geom, uT, graduT, uhT, Pk);
     errorL2vec(l) = errorL2;

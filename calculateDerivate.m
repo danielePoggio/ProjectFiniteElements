@@ -1,3 +1,4 @@
+function [gradu, d2u] = calculateDerivate(u)
 % Step 1: Declare symbolic variable
 syms x y;
 
@@ -21,4 +22,4 @@ expr_diff_x_str = char(expr_diff_x2);
 expr_diff_y_str = char(expr_diff_y2);
 d2u = str2func([ '@(x,y)'   expr_diff_x_str '  +  ' expr_diff_y_str ]);
 
-clear dux duy d2uy d2ux expr_diff_y_str expr_diff_x_str expr_diff_y expr_diff_x  graducell  x y
+end

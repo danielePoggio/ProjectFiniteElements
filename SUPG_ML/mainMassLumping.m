@@ -3,18 +3,14 @@ close all
 clc
 
 %% Problema differenziale
-f = @(x,a) 1./(1 + exp(-a*(x-0.5)));
-u = @(x,y) f(x+y,10);
-% u = @(x,y) 16*x*(1-x)*y*(1-y);
+u = @(x,y) 2 - 1/(tanh(x + 30*y + 2));
 run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
-gradu = @(x,y) gradu(x,y)';
-d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
-mu = @(x,y) 0.01;
+mu = @(x,y) 10.0e-06;
 beta = @(x,y) [0.0, 0.0];
-sigma = @(x,y) 500.0;
+sigma = @(x,y) 1.0;
 f = @(x,y) -mu(x,y)*d2u(x,y)+beta(x,y)*gradu(x,y)+sigma(x,y)*u(x,y);
 n = [0,-1]'; % direzione uscente da lato su y = 0
-gNe = @(x,y) mu(x,y)*n'*gradu(x,0);
+gNe = @(x,y) mu(x,y)*n'*gradu(x,y);
 gDi = @(x,y) u(x,y);
 
 %% Soluzione problema discretizzato
@@ -65,9 +61,9 @@ for l=1:Ktest
     if l == 1
         area = areaTri(1);
     else
-        area = areaTri(l-1)/4;
+        area = areaTri(l-1)/1.5;
     end
-    geom = TriangolatorP2(area,Pk);
+    geom = TriangolatorP1Di(area);
     Area = [geom.support.TInfo.Area].';
     areaTri(l) = max(Area);
     h = sqrt(areaTri(l));

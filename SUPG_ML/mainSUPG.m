@@ -3,11 +3,10 @@ close all
 clc
 
 %% Problema differenziale
-% g = @(x,a) 1./(1 + exp(-a*(x-0.5)));
-% u = @(x,y) g(x^2+y^2,10);
-u = @(x,y) 16*x*(1-x)*y*(1-y);
+g = @(x,a) 1./(1 + exp(a*(x-0.5)));
+u = @(x,y) g(x^2+y^2,10);
+% u = @(x,y) 16*x*(1-x)*y*(1-y);
 run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
-d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
 mu = @(x,y) 1.0e-5;
 beta = @(x,y) [1,1];
 sigma = @(x,y) 0.0;

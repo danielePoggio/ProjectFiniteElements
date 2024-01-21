@@ -1,6 +1,6 @@
-function [uh, condB] = implicitEuler(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0)
-%IMPLICITEULER Summary of this function goes here
-%   Detailed explanation goes here
+function [uh, condB] = crankNicolsonP2(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0)
+%Assemblaggio FEM Dirichlet non omogeneo, calcolo coeff con nodi di
+%quadratura invece che approssimare con il baricentro
 pivot = geom.pivot.pivot;
 indexDof = (pivot > 0);
 ele = geom.elements.triangles;
@@ -14,22 +14,38 @@ B = zeros(Ndof,Ndof);
 Ad = zeros(Ndof, NDi);
 Bd = zeros(Ndof, NDi);
 uh = zeros(Np, Nt+1);
+b = zeros(Ndof,1);
+
 for i=1:Np
     V = XY(i,:);
     uh(i,1) = u0(V(1),V(2));
 end
 
-% definiamo i nodi di quadratura e i pesi associati
-run("nodes_weights.m")
+% ricaviamo nodi di quadratura
+run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\nodes_weights.m")
+% estraiamo funzioni P2
+Nv = 6;
+N1 = @(x,y) x;
+N2 = @(x,y) y;
+N3 = @(x,y) 1 - x - y;
+phi1 = @(x,y) 2*N1(x,y)*(N1(x,y) - 0.5);
+phi2 = @(x,y) 2*N2(x,y)*(N2(x,y) - 0.5);
+phi3 = @(x,y) 2*N3(x,y)*(N3(x,y) - 0.5);
+phi4 = @(x,y) 4*N3(x,y)*N1(x,y);
+phi5 = @(x,y) 4*N1(x,y)*N2(x,y);
+phi6 = @(x,y) 4*N2(x,y)*N3(x,y);
+phi = @(x,y) [phi1(x,y), phi2(x,y), phi3(x,y), phi4(x,y), phi5(x,y), phi6(x,y)]';
+
+Jphi = @(x,y) [4*x - 1, 0, 4*x + 4*y - 3, 4 - 4*y - 8*x, 4*y, -4*y;
+    0, 4*y - 1, 4*x + 4*y - 3, -4*x, 4*x, 4 - 8*y - 4*x]';
 clear sqrt15
 Nq = length(xhat); % numero nodi di quadratura
 
-% Definiamo matrici con i valori che andremo ad utilizzare nell'integrale CASO P1
-phi = @(x,y) [x, y, 1-x-y];
-Jphi = @(x,y) [1, 0; 0, 1; -1, -1];
-phi_matrix = zeros(Nq,3);
-dphix_matrix = zeros(Nq,3);
-dphiy_matrix = zeros(Nq,3);
+% Definiamo matrici con i valori che andremo ad utilizzare nell'integrale
+% CASO P2
+phi_matrix = zeros(Nq,Nv);
+dphix_matrix = zeros(Nq,Nv);
+dphiy_matrix = zeros(Nq,Nv);
 for q=1:Nq
     Jphi_temp = Jphi(xhat(q), yhat(q));
     phi_matrix(q,:) = phi(xhat(q), yhat(q));
@@ -47,10 +63,10 @@ for e=1:Nele
     prodinvBinvbt = invB*invB'; % per accelerare lo calcolo una sola volta
     c = p3';
     Fe = @(x,y) c + BFe*[x,y]';
-    for j=1:3
+    for j=1:Nv
         jj = pivot(ele(e,j));
         if jj > 0
-            for k=1:3
+            for k=1:Nv
                 kk = pivot(ele(e,k));
                 if kk > 0 % assemblaggio classico di A
                     phik = phi_matrix(:, k);
@@ -109,21 +125,41 @@ Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
 edgeBorders = geom.elements.borders(Ne,:,:,:);
 nedgeBorders = length(edgeBorders);
 bNe = zeros(Ndof, Nt+1);
+t = linspace(0,1,3);
+% scrivo le funzioni della base rispetto al lato (diventano funzioni
+% 1D)
+phiL1 = @(t) 2*(t-0.5)*(t-1);
+phiL2 = @(t) -4*t*(t-1);
+phiL3 = @(t) 2*t*(t-0.5);
+phiL = @(t) [phiL1(t), phiL2(t), phiL3(t)]';
+% sfrutto questa forma matriciale per andare a calcolare i vari
+% integrali : int(phii*phij)
+phiM = @(t) phiL(t)*phiL(t)';
+phiTensor = zeros(3,3,3);
+w = nodiQuadratura1D(3);
+for k=1:3
+    phiTensor(:,:,k) = w(k)*phiM(t(k));
+end
+phiMatrix = sum(phiTensor,3);
 for n=1:Nt+1
     for e=1:nedgeBorders
         edge = Ne(e);
         indexB = geom.elements.borders(edge,1);
         indexE = geom.elements.borders(edge,2);
+        indexM = geom.elements.borders(edge,5);
         Vb = XY(indexB,:);
         Ve = XY(indexE,:);
+        Vm = XY(indexM,:);
         edgeLen = norm(Ve - Vb,2);
-        ii = geom.pivot.pivot(indexB);
-        if ii > 0
-            bNe(ii,n) = bNe(ii,n) + (gNe((n-1)*deltat,Vb(1),Vb(2))/3 + gNe((n-1)*deltat,Ve(1),Ve(2))/6)*edgeLen;
-        end
-        ii = geom.pivot.pivot(indexE);
-        if ii > 0
-            bNe(ii,n) = bNe(ii,n) + (gNe((n-1)*deltat,Vb(1),Vb(2))/6 + gNe((n-1)*deltat,Ve(1),Ve(2))/3)*edgeLen;
+        gN = [gNe((n-1)*deltat, Vb(1), Vb(2)) gNe((n-1)*deltat, Vm(1), Vm(2)) gNe((n-1)*deltat, Ve(1), Ve(2))]';
+        finalIntegrals = edgeLen*(phiMatrix*gN);
+        indexNode = [indexB, indexM, indexE];
+        for i=1:3
+            idx = indexNode(i);
+            ii = geom.pivot.pivot(idx);
+            if ii > 0
+                bNe(ii, n) = bNe(ii, n) + finalIntegrals(i);
+            end
         end
     end
 end
@@ -139,7 +175,7 @@ for n=1:Nt+1
         BFe = [(p1-p3); (p2-p3)]';
         c = p3';
         Fe = @(x,y) c + BFe*[x,y]';
-        for j=1:3
+        for j=1:Nv
             jj = pivot(ele(e,j));
             if jj > 0
                 phij = phi_matrix(:, j);
@@ -151,12 +187,11 @@ for n=1:Nt+1
         end
     end
 end
-
 condB = cond(B);
 %% Risolviamo i sistemi lineari per ogni istante temporale
+matrix = B + (deltat/2)*A;
 for n=2:Nt+1
-    matrix = B + deltat*A;
-    termineNoto = B*uh(indexDof,n-1) + deltat*(-Bd*dtud(:,n) - Ad*ud(:,n) + b(:,n) + bNe(:,n));
+    termineNoto = (B-(deltat/2)*A)*uh(indexDof,n-1) + 0.5*deltat*(-Bd*dtud(:,n) - Ad*ud(:,n) + b(:,n) + bNe(:,n) - Bd*dtud(:,n-1) - Ad*ud(:,n-1) + b(:,n-1) + bNe(:,n-1));
     x = matrix\termineNoto;
     for j=1:Np
         jj = pivot(j);
@@ -168,4 +203,3 @@ for n=2:Nt+1
     end
 end
 end
-

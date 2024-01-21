@@ -1,7 +1,7 @@
 clear all
 close all
 clc
- %% Definisce mesh sul dominio
+ %% Definisce mesh sul dominio e controllo coincidenza del lati sul bordo
 area = 0.01;
 omega1Vertex = [0 1;
     1 1;
@@ -13,6 +13,18 @@ omega2Vertex = [0 0;
     2 1;
     0,1];
 geomOmega2 = TriangolatorDomainVertex(area, omega2Vertex);
+
+XY1 = geomOmega1.elements.coordinates;
+index1 = (XY1(:,1) <= 1) & (XY1(:,2) == 1);
+pointOnEdge1 = XY1(index1,:);
+
+XY2 = geomOmega2.elements.coordinates;
+index2 = (XY2(:,1) <= 1) & (XY2(:,2) == 1);
+pointOnEdge2 = XY2(index2,:);
+
+disp(sort(pointOnEdge2(:,1)) == sort(pointOnEdge1(:,1)))
+
+N
 
 %% Condizioni di Dirichlet nulle
 % definizione del problema e della soluzione

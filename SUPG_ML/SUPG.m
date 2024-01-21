@@ -46,7 +46,7 @@ elseif Pk == 2
     Hphi(:,:,3) = [4, 4; 4, 4];
     Hphi(:,:,4) = [-8, -4; -4, 0];
     Hphi(:,:,5) = [0, 4; 4, 0];
-    Hphi(:,:,6) = [0, -4; -4, -4];
+    Hphi(:,:,6) = [0, -4; -4, -8];
     clear N1 N2 N3 phi1 phi2 phi3 phi4 phi5 phi6
     mk = 1/24;
 end
@@ -94,8 +94,11 @@ for e=1:Nele
                     dphik = [dphix_matrix(:,k), dphiy_matrix(:,k)];
                     dphij = [dphix_matrix(:,j), dphiy_matrix(:,j)];
                     Hphik = Hphi(:,:,k);
-                    HphikHat =  invB'*(Hphik*invB);
-                    d2phik = HphikHat(1,1) + HphikHat(2,2);
+%                     HphikHat =  invB'*(Hphik*invB);
+%                     d2phik = HphikHat(1,1) + HphikHat(2,2);
+                    d2xphik = invB(1,1)*invB(1,1)*Hphik(1,1) + invB(1,1)*invB(2,1)*(Hphik(1,2) + Hphik(2,1)) + invB(2,1)*invB(2,1)*Hphik(2,2);
+                    d2yphik = invB(1,2)*invB(1,2)*Hphik(1,1) + invB(1,2)*invB(2,2)*(Hphik(1,2) + Hphik(2,1)) + invB(2,2)*invB(2,2)*Hphik(2,2);
+                    d2phik = d2xphik + d2yphik;
                     Djk = 0;
                     Gjk = 0;
                     Cjk = 0;
