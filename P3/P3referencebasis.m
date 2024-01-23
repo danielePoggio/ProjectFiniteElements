@@ -8,13 +8,11 @@ matrix = [loc(0,0);
     base(1/3,1/3)'];
 
 weights = zeros(10,10);
-b = eye(10,10);
+bP = eye(10,10);
 for i=1:10
-    w = matrix\b(:,i);
+    w = matrix\bP(:,i);
     weights(i,:) = w';
 end
 
 phiP3 = @(x,y) weights*base(x,y);
-
-
-run("")
+clear loc
