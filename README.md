@@ -1,5 +1,5 @@
 ﻿# ProjectFiniteElements
- # Matlab script for Finite Element Project.
+ Matlab script for Finite Element Project.
  # Actually Implemented:
 Diffusion-Convection-Reaction Equations P1 and P2
 Mass Lumping
