@@ -3,7 +3,7 @@ close all
 clc
 
 %% Problema differenziale
-u = @(t,x,y) x+y+sin(t);
+u = @(t,x,y) x.^2 + y.^2 + sin(t);
 run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivateTemporal.m")
 rho = @(x,y) 1.0;
 mu = @(x,y) 1.0;
@@ -25,29 +25,15 @@ close all
 Area = [geom.support.TInfo.Area].';
 h = sqrt(max(Area));
 
-%% Plot soluzione finale
-% XY = geom.elements.coordinates;
-% x = XY(:,1);
-% y = XY(:,2);
-% Np = length(x);
-% soluzioneEsatta = zeros(Np,1);
-% for i=1:Np
-%     soluzioneEsatta(i) = u(T,x(i), y(i));
-% end
-% tTable = delaunay(x, y);
-% figure(1)
-% trisurf(tTable, x, y, soluzioneEsatta);
-% title("Grafico soluzione esatta")
-
 %%  Eseguo Test
 XY = geom.elements.coordinates;
 x = XY(:,1);
 y = XY(:,2);
 Np = length(x);
-T = 2.0;
+T = 1.0;
 Ktest = 4;
 deltaTest = zeros(Ktest,1);
-deltaTest(1) = 0.1;
+deltaTest(1) = 0.05;
 errorL2vec = zeros(Ktest,1);
 errorH1vec = zeros(Ktest,1);
 errorLInfvec = zeros(Ktest,1);
@@ -67,7 +53,7 @@ for l=1:Ktest
         soluzioneEsatta(i) = u(T,x(i), y(i));
     end
     numberStep(l) = Nt;
-    [uh, condB] = crankNicolsonP2(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
+    [uh, condB] = cranckNicolsonP2(geom, deltat, Nt, rho, mu, beta, sigma, f, gDi, gNe, dtgDi, u0);
     uhT = uh(:,Nt+1);
     [errorL2, errorH1] = errorFunctionOld(geom, uT, graduT, uhT, Pk);
     errorL2vec(l) = errorL2;
@@ -75,19 +61,19 @@ for l=1:Ktest
     errorLInfvec(l) = norm(soluzioneEsatta - uhT, 'inf');
 end
 
-figure(Ktest+2)
+figure(1)
 loglog(deltaTest, errorH1vec)
 title("Andamento errore norma H1")
 
 pH1 = polyfit(log(deltaTest), log(errorH1vec), 1);
 
-figure(Ktest+3)
+figure(2)
 loglog(deltaTest, errorL2vec)
 title("Andamento errore norma L2")
 
 pL2 = polyfit(log(deltaTest), log(errorL2vec), 1);
 
-figure(Ktest+4)
+figure(3)
 plot(deltaTest, errorLInfvec)
 title("Andamento errore norma LInf")
 

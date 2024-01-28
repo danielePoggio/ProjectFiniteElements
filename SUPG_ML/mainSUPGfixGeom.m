@@ -4,10 +4,7 @@ clc
 
 %% Problema differenziale
 u = @(x,y) 2 - 1/(tanh(x + 30*y + 2));
-% run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
 [gradu, d2u] = calculateDerivate(u);
-% mu = @(x,y) 10.0e-06;
-f = @(x,y) -mu(x,y)*d2u(x,y)+beta(x,y)*gradu(x,y)+sigma(x,y)*u(x,y);
 beta = @(x,y) [1.0, 1.0];
 sigma = @(x,y) 0.0;
 n = [0,-1]'; % direzione uscente da lato su y = 0
@@ -93,9 +90,9 @@ loglog(epsVec, PevP2)
 title("Andamento numero di Pe P2")
 
 figure(7)
-loglog(PevP2, errorL2P2)
+plot(PevP2, errorL2P2)
 hold on
-loglog(PevP2, errorL2SUPG)
+plot(PevP2, errorL2SUPG)
 legend("Errore L2 P2", "Errore L2 SUPG")
 xlabel("Numero di Pechlet")
 ylabel("Errore in norma L2")

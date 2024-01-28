@@ -14,17 +14,28 @@ omega2Vertex = [0 0;
     0,1];
 geomOmega2 = TriangolatorDomainVertex(area, omega2Vertex);
 
+idx = 1:1:500;
+
 XY1 = geomOmega1.elements.coordinates;
-index1 = (XY1(:,1) <= 1) & (XY1(:,2) == 1);
-pointOnEdge1 = XY1(index1,:);
+boolIndexNe1 = (XY1(:,1) <= 1) & (XY1(:,2) == 1);
+indexNe1 = idx(boolIndexNe1);
+indexDi1 = geomOmega1.pivot.Di(:,1);
+indexDof1 = idx(geomOmega1.pivot.pivot > 0);
+pointOnEdge1 = XY1(boolIndexNe1,:);
 
 XY2 = geomOmega2.elements.coordinates;
-index2 = (XY2(:,1) <= 1) & (XY2(:,2) == 1);
-pointOnEdge2 = XY2(index2,:);
+boolIndexNe2 = (XY2(:,1) <= 1) & (XY2(:,2) == 1);
+indexNe2 = idx(boolIndexNe2);
+indexDi2 = geomOmega2.pivot.Di(:,1);
+indexDof2 = idx(geomOmega2.pivot.pivot > 0);
+pointOnEdge2 = XY2(boolIndexNe2,:);
 
-disp(sort(pointOnEdge2(:,1)) == sort(pointOnEdge1(:,1)))
+disp(sort(pointOnEdge2(:,1)) == sort(pointOnEdge1(:,1)));
 
-N
+% creo una struct della mesh globale per gestione degli indici:
+geom = struct('geom1', geomOmega1, 'geom2', geomOmega2, 'indexDof1', indexDof1, 'indexDof2', indexDof2, ...
+    'indexDi1', indexDi1, 'indexDi2', indexDi2, 'indexNe1', indexNe1, 'indexNe2', indexNe2);
+
 
 %% Condizioni di Dirichlet nulle
 % definizione del problema e della soluzione
