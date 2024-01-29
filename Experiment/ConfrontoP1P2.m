@@ -1,11 +1,10 @@
 clear all
 close all
 clc
+
 %% Confronto P1 e P2 su stessa soluzione:
 u = @(x,y) 16*x*(1-x)*y*(1-y);
-run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
-gradu = @(x,y) gradu(x,y)';
-d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
+[gradu, d2u] = calculateDerivate(u);
 mu = @(x,y) 1;
 beta = @(x,y) [3.0, 1.0];
 sigma = @(x,y) 2;

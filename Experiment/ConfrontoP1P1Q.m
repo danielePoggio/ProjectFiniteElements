@@ -1,9 +1,7 @@
 %% Formule di quadratura per coeff non costanti
 % definizione problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y)+x+y;
-run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
-gradu = @(x,y) gradu(x,y)';
-d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
+[gradu, d2u] = calculateDerivate(u);
 mu = @(x,y) 1;
 beta = @(x,y) [x, 0.0];
 sigma = @(x,y) -y;
@@ -12,7 +10,7 @@ n = [0,-1]'; % direzione uscente da lato su y = 0
 gNe = @(x,y) mu(x,y)*(n'*gradu(x,y));
 gDi = @(x,y) u(x,y);
 
-% ordine di convergenza
+%% ordine di convergenza
 % valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
 Pk = 1;
 Ktest = 3;

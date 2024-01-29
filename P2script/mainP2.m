@@ -10,9 +10,7 @@ clc
 
 %% Problema differenziale
 u = @(x,y) 16*x*(1-x)*y*(1-y)+x+y;
-run("C:\Users\39334\Desktop\Poli\Metodi Numerici PDE\LAIB\ProjectFiniteElements\calculateDerivate.m")
-gradu = @(x,y) gradu(x,y)';
-d2u = @(x,y) [1,0]*Hu(x,y)*[1,0]'+ [0,1]*Hu(x,y)*[0,1]';
+[gradu, d2u] = calculateDerivate(u);
 mu = @(x,y) 1.0;
 beta = @(x,y) [1.0, 0.0];
 sigma = @(x,y) 3.0;
@@ -20,25 +18,6 @@ f = @(x,y) -mu(x,y)*d2u(x,y)+beta(x,y)*gradu(x,y)+sigma(x,y)*u(x,y);
 n = [0,-1]'; % direzione uscente da lato su y = 0
 gNe = @(x,y) mu(x,y)*(n'*gradu(x,y));
 gDi = @(x,y) u(x,y);
-
-%% Soluzione problema discretizzato
-% Pk = 2;
-% uh = FEMDiNeP2(geom, mu, beta, sigma, f, gDi, gNe);
-% uh = SUPG(geom, Pk, mu, beta, f, gDi, gNe);
-
-%% Plot soluzione approssimata
-% tTable = tTableforP2plot(geom.elements.triangles);
-% XY = geom.elements.coordinates;
-% x = XY(:,1);
-% y = XY(:,2);
-% figure(1)
-% tTable = delaunay(x, y); % Genera la matrice di connettività dei triangoli
-% trisurf(tTable, x, y, uh);
-% title("Grafico funzione approssimata")
-
-% Calcolo errore
-% Pk = 2;
-% [errorL2, errorH1] = errorFunction(geom, u, gradu, uh, Pk);
 
 %% valutiamo come cambiano gli errori in norma L2 ed H1 al variare dell'area massima della triangolazione
 Pk = 2;
@@ -53,7 +32,7 @@ for l=1:Ktest
     else
         area = areaTri(l-1)/4;
     end
-    geom = TriangolatorNe(area, Pk);
+    geom = TriangolatorP2Ne(area);
     close all
     Area = [geom.support.TInfo.Area].';
     maxArea = max(Area);

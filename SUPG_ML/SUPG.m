@@ -154,24 +154,67 @@ end
 
 
 % Imponiamo condizioni di Neuman
-Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
-edgeBorders = geom.elements.borders(Ne,:,:,:);
-nedgeBorders = length(edgeBorders);
-bNeumann = zeros(length(b), 1);
-for e=1:nedgeBorders
-    edge = Ne(e);
-    indexB = geom.elements.borders(edge,1);
-    indexE = geom.elements.borders(edge,2);
-    Vb = XY(indexB,:);
-    Ve = XY(indexE,:);
-    edgeLen = norm(Ve - Vb,2);
-    ii = geom.pivot.pivot(indexB);
-    if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
+if Pk == 1
+    Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
+    edgeBorders = geom.elements.borders(Ne,:,:,:);
+    nedgeBorders = length(edgeBorders);
+    bNeumann = zeros(length(b), 1);
+    for e=1:nedgeBorders
+        edge = Ne(e);
+        indexB = geom.elements.borders(edge,1);
+        indexE = geom.elements.borders(edge,2);
+        Vb = XY(indexB,:);
+        Ve = XY(indexE,:);
+        edgeLen = norm(Ve - Vb,2);
+        ii = geom.pivot.pivot(indexB);
+        if ii > 0
+            bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/3 + gNe(Ve(1),Ve(2))/6)*edgeLen;
+        end
+        ii = geom.pivot.pivot(indexE);
+        if ii > 0
+            bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
+        end
     end
-    ii = geom.pivot.pivot(indexE);
-    if ii > 0
-        bNeumann(ii) = bNeumann(ii) + (gNe(Vb(1),Vb(2))/6 + gNe(Ve(1),Ve(2))/3)*edgeLen;
+elseif Pk == 2
+    Ne = geom.pivot.Ne(:,1); % indice dei lati al bordo con condizioni di Ne
+    edgeBorders = geom.elements.borders(Ne,:,:,:);
+    nedgeBorders = length(Ne);
+    bNeumann = zeros(Ndof, 1);
+    t = linspace(0,1,3);
+    % scrivo le funzioni della base rispetto al lato (diventano funzioni
+    % 1D)
+    phiL1 = @(t) 2*(t-0.5)*(t-1);
+    phiL2 = @(t) -4*t*(t-1);
+    phiL3 = @(t) 2*t*(t-0.5);
+    phiL = @(t) [phiL1(t), phiL2(t), phiL3(t)]';
+    % sfrutto questa forma matriciale per andare a calcolare i vari
+    % integrali : int(phii*phij)
+    phiM = @(t) phiL(t)*phiL(t)';
+    phiTensor = zeros(3,3,3);
+    w = nodiQuadratura1D(3);
+    for k=1:3
+        phiTensor(:,:,k) = w(k)*phiM(t(k));
+    end
+    phiMatrix = sum(phiTensor,3);
+    for e=1:nedgeBorders
+        edge = Ne(e);
+        indexB = geom.elements.borders(edge,1);
+        indexE = geom.elements.borders(edge,2);
+        indexM = geom.elements.borders(edge,5);
+        Vb = XY(indexB,:);
+        Ve = XY(indexE,:);
+        Vm = XY(indexM,:);
+        edgeLen = norm(Ve - Vb,2);
+        gN = [gNe(Vb(1), Vb(2)) gNe(Vm(1), Vm(2)) gNe(Ve(1), Ve(2))]';
+        finalIntegrals = edgeLen*(phiMatrix*gN);
+        indexNode = [indexB, indexM, indexE];
+        for i=1:3
+            idx = indexNode(i);
+            ii = geom.pivot.pivot(idx);
+            if ii > 0
+                bNeumann(ii) = bNeumann(ii) + finalIntegrals(i);
+            end
+        end
     end
 end
 b = b + bNeumann + M;
